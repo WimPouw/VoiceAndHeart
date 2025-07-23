@@ -462,7 +462,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = FALSE
+overwrite = TRUE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -568,7 +568,7 @@ for(ID in triallist$uniquetrial)
 Note that there is a general decline in the amplitude of the vocalization during a trial (see Fig. \@ref(fig:combinedtimeseries), top panel). This is to be expected, as the subglottal pressure falls when the lungs deflate. To quantify deviations from stable vocalizations, we therefore detrend the amplitude envelope time series, so as to assess positive or negative peaks relative to this trend line.
 We scale the two EMG signals by using the mean and standard deviation from the middle section, i.e. 1 to 6 s, which we also use in most of the analyses here. This provides a better scaling, as the times outside of that range can have quite high/low values.
 
-```{r normalization_EMG, cache = TRUE, ECHO = TRUE, code_folding = "Show code scaling data within participant"}
+```{r normalization_EMG, cache = FALSE, ECHO = TRUE, code_folding = "Show code scaling data within participant"}
 #We have to do some within participant scaling, such that
   #all EMG's are rescaled within trials
 fs <-  list.files(procd)
@@ -576,7 +576,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = F
+overwrite = TRUE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -648,6 +648,8 @@ ptest=12
 ex2 <- triallist[triallist$vocal_condition=='vocalize' & triallist$movement_condition=='no_movement'& triallist$ppn ==ptest, ]
 ex2 <- ex2[1, ]
 #ex2$trialindex
+if (file.exists(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex, '_heartrate_aligned.csv')))
+{
 exts2 <- read.csv(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex, '_heartrate_aligned.csv'))
 #exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
   exts2 <- subset(exts2, time_s_c > 1 & time_s_c <5)
@@ -681,10 +683,15 @@ exampleEMG <- ggplot(exts2, aes(x=time_ms)) +
   theme(legend.position = "bottom") +
   xlim(1000, 5000) +
   xlab('time (ms)')
+}
 ```
 
 ```{r combinedtimeseries, echo=FALSE, message = FALSE, fig.cap = "Combined time series. One example trial and the associated EMG signals are shown, for the no movement condition with vocalization. We determine a detrending line using linear regression for the 1 to 5 s after the vocalization prompt.", fig.height = 6}
+# check if object exists
+if (exists("exampleenvelope") & exists("exampleEMG"))
+{
 plot_grid(exampleenvelope, exampleEMG, ncol = 1, align = 'v', axis = 'l')
+}
 ```
 
 
@@ -698,6 +705,8 @@ ex3 <- triallist %>%
   dplyr::filter(ppn == 8) #arbitrary but we also chose ppn 8 in the example above
 ex3 <- ex3[2, ]
 #ex2$trialindex
+if (file.exists(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '_heartrate_aligned.csv')))
+{
 exts3 <- read.csv(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '_heartrate_aligned.csv'))
 #exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
   exts3 <- subset(exts3, time_s_c > 0 & time_s_c <7)
@@ -727,21 +736,29 @@ examplenomov <- ggplot(exts3, aes(x=time_ms)) +
   geom_hline(yintercept= 0) +
   xlim(1000, 5000) +
   xlab('time (ms)')
+
+}
 ```
 
 ```{r combinedtimeseriesnomov, echo=FALSE, message = FALSE, fig.cap = "Example trial showing no movement and the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
+if(exists("examplenomov"))
+{
 plot_grid(examplenomov)
+}
 ```
 We mainly see activity in the rectus abdominis here, less so in the pectoralis major. Let's plot another trial from a different participant.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 #ptest=8
+
 ex4 <- triallist %>% 
   dplyr::filter(vocal_condition == "vocalize") %>% 
   dplyr::filter(movement_condition == "no_movement") %>% 
   dplyr::filter(ppn == 10) #arbitrary but we also chose ppn 8 in the example above
 ex4 <- ex4[3, ]
 #ex2$trialindex
+if (file.exists(paste0(procd, 'zscal_pp_', ex4$ppn, '_trial_', ex4$trialindex, '_heartrate_aligned.csv')))
+{
 exts4 <- read.csv(paste0(procd, 'zscal_pp_', ex4$ppn, '_trial_', ex4$trialindex, '_heartrate_aligned.csv'))
 #exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
   exts4 <- subset(exts4, time_s_c > 0 & time_s_c <7)
@@ -764,10 +781,14 @@ examplenomov2 <- ggplot(exts4, aes(x=time_ms)) +
   geom_hline(yintercept= 0) +
   xlim(1000, 7000) +
   xlab('time (ms)')
+}
 ```
 
 ```{r combinedtimeseriesnomov2, echo=FALSE, message = FALSE, fig.cap = "Example trial (no movement condition) showing the vocal amplitude and the respective trendline (black), as well as the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
+if (exists("examplenomov2"))
+{
 plot_grid(examplenomov2)
+}
 ```
 
 
@@ -796,10 +817,10 @@ We do this on the envelope time series from 1 to 6 s to avoid any late starts or
 
 
 
-```{r, cache = TRUE, echo = TRUE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
+```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
-overwrite = FALSE
+overwrite = TRUE
 
 if(overwrite==TRUE)
 {
@@ -1339,7 +1360,7 @@ Setting replace to FALSE ensures that no trial occurs twice in the shuffled vers
 
 Coherence is then computed for each trial between the detrended amplitude envelope and the pectoralis major EMG signal for real and false pairs via seewave::coh().
 
-```{r, warning = FALSE, echo = TRUE, cache=TRUE, code_folding = "Show code for coherence analysis", message = FALSE}
+```{r, warning = FALSE, echo = TRUE, cache=FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
 ### create real and false pairs
 # real pairs: use trial pairings as recorded
 # false pairs: take tr_wd_nomov$uniquetrials and randomly combine them
@@ -1420,7 +1441,7 @@ falsepairs <- falsepairs %>%
 
 Now we use these two newly created data frames to compute coherence for false and real pairs.
 
-```{r, warning = FALSE, echo = TRUE,cache = TRUE, code_folding = "Show code for coherence analysis", message = FALSE}
+```{r, warning = FALSE, echo = TRUE,cache = FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
 ### compute coherence
 #start with realpairs
 coherence_realpairs <- realpairs %>%
