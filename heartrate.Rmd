@@ -103,7 +103,7 @@ Code chunks are hidden by default, but can be made visible by clicking "Show cod
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "C:/Research_Projects/veni_local/exp100/"#"C:/Users/U941163/Desktop/Raphael/projects/VENI-local/" #THIS NEEDS TO BE CHANGED
+localfolder <- "F:/VENI_data_local/exp100/"#"This points to your local data that you have downloaded from SURF" #THIS NEEDS TO BE CHANGED
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -458,7 +458,7 @@ amplitude_envelope.extract <- function(locationsound, smoothingHz, resampledHz)
 ### Data aggregation
 All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the data by aligning time series in a combined by-trial format to increase ease of combined analyses. We linearly interpolated signals when sample times did not align perfectly.
 
-```{r, echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE, results = FALSE, code_folding = "Show code aggregating the data"}
+```{r, echo = TRUE, cache = FALSE, warning = FALSE, message = FALSE, results = FALSE, code_folding = "Show code aggregating the data"}
 library(pracma)
 library(zoo)
 
@@ -1145,7 +1145,7 @@ We here use the
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
-overwrite = F #set to true if you want to run this chunk
+overwrite = TRUE #set to true if you want to run this chunk
 
 if(overwrite == TRUE)
 {

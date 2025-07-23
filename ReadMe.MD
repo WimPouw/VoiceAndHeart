@@ -1,12 +1,14 @@
 \# Heart Voice Closed Repo
 
+This is the private repo of a project about voice and heart by Marijn Hafkamp, Raphael Werner, Linda Drijvers, Luc Selen, Wim Pouw. In the ReadMe I collect all the information that we need ready to hand for this project. The ReadMe is markdown formatted and serves as the landing page of the ReadMe. 
 
+Manuscript link: [Google docs](https://docs.google.com/document/d/14QrN7fCNX8wqqjQa6AC-6c1SMdAEHFpo3JgbwhNqPS4/edit?tab=t.0#heading=h.hcfsn8dd2dw4)
+Publication webpage for this Github: https://wimpouw.github.io/VoiceAndHeart/ -> for quickly sharing results
+Zotero library link: [voiceheart](https://www.zotero.org/groups/6073975/voiceheart) -> for our references
 
-This is the private repo of a project about voice and heart by Marijn Hafkamp, Raphael Werner, Linda Drijvers, Luc Selen, Wim Pouw.
+# How to run the code
 
-
-
-The ReadMe is markdown formatted.
+Please not that a lot of code blocks take a lot of time to run. And once we have run them, we can set overwrite to FALSE, and occasionally some code blocks to cache=TRUE. This way you can more quickly change things and render the outcome. Of course, during coding you can just run things in the terminal (by clicking on the play on each chunck) and then you dont have to knit the entire document. 
 
 
 
@@ -29,7 +31,7 @@ The ReadMe is markdown formatted.
 
 Download link: https://surfdrive.surf.nl/files/index.php/s/Z9RuxPsdAwoegxe
 
-password: \[ask wim]
+password: Donders
 
 
 
