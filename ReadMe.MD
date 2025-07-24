@@ -1,4 +1,4 @@
-\# Heart Voice Closed Repo
+# Heart Voice Closed Repo
 
 This is the private repo of a project about voice and heart by Marijn Hafkamp, Raphael Werner, Linda Drijvers, Luc Selen, Wim Pouw. In the ReadMe I collect all the information that we need ready to hand for this project. The ReadMe is markdown formatted and serves as the landing page of the ReadMe. 
 
@@ -13,7 +13,7 @@ Please not that a lot of code blocks take a lot of time to run. And once we have
 
 
 
-\# Step 0.0:
+## Step 0.0:
 
 * Download github desktop
 * Check a quick tutorial on how to clone a repo using github desktop (YouTube)
@@ -21,7 +21,7 @@ Please not that a lot of code blocks take a lot of time to run. And once we have
 
 
 
-\# Step 0.1:
+## Step 0.1:
 
 * do a quick tutorial on Rmarkdown on YouTube
 * do a quick tutorial on the markdown formatting of text on YouTube
@@ -29,7 +29,7 @@ Please not that a lot of code blocks take a lot of time to run. And once we have
 
 
 
-\# Step 1: Get the data to you local machine
+## Step 1: Get the data to you local machine
 
 Download link: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
 
@@ -37,17 +37,17 @@ password: Donders
 
 
 
-\# Step 2: adjust the markdown to point to to the local folder
+## Step 2: adjust the markdown to point to to the local folder
 
 
 
-\# Step 3 Run markdown script
+## Step 3 Run markdown script
 
 * run/knit the markdown
 
 
 
-\# Step 4 (optional): Stage result to a public webpage?
+## Step 4 (optional): Stage result to a public webpage?
 
 copy index.html to /docs
 
