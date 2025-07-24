@@ -2,10 +2,10 @@
 
 This is the private repo of a project about voice and heart by Marijn Hafkamp, Raphael Werner, Linda Drijvers, Luc Selen, Wim Pouw. In the ReadMe I collect all the information that we need ready to hand for this project. The ReadMe is markdown formatted and serves as the landing page of the ReadMe. 
 
-Manuscript link: [Google docs](https://docs.google.com/document/d/14QrN7fCNX8wqqjQa6AC-6c1SMdAEHFpo3JgbwhNqPS4/edit?tab=t.0#heading=h.hcfsn8dd2dw4)
-Publication webpage for this Github: https://wimpouw.github.io/VoiceAndHeart/ -> for quickly sharing results
-Zotero library link: [voiceheart](https://www.zotero.org/groups/6073975/voiceheart) -> for our references
-Raw Data: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
+* Manuscript link: [Google docs](https://docs.google.com/document/d/14QrN7fCNX8wqqjQa6AC-6c1SMdAEHFpo3JgbwhNqPS4/edit?tab=t.0#heading=h.hcfsn8dd2dw4)
+* Publication webpage for this Github: https://wimpouw.github.io/VoiceAndHeart/ -> for quickly sharing results
+* Zotero library link: [voiceheart](https://www.zotero.org/groups/6073975/voiceheart) -> for our references
+* Raw Data: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
 
 # How to run the code
 
