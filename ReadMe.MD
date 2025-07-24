@@ -5,6 +5,7 @@ This is the private repo of a project about voice and heart by Marijn Hafkamp, R
 Manuscript link: [Google docs](https://docs.google.com/document/d/14QrN7fCNX8wqqjQa6AC-6c1SMdAEHFpo3JgbwhNqPS4/edit?tab=t.0#heading=h.hcfsn8dd2dw4)
 Publication webpage for this Github: https://wimpouw.github.io/VoiceAndHeart/ -> for quickly sharing results
 Zotero library link: [voiceheart](https://www.zotero.org/groups/6073975/voiceheart) -> for our references
+Raw Data: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
 
 # How to run the code
 
@@ -29,7 +30,7 @@ Please not that a lot of code blocks take a lot of time to run. And once we have
 
 \# Step 1: Get the data to you local machine
 
-Download link: https://surfdrive.surf.nl/files/index.php/s/Z9RuxPsdAwoegxe
+Download link: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
 
 password: Donders
 
