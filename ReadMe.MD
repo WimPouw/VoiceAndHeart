@@ -68,6 +68,8 @@ after\_edited\_plots -> has some figures that we would like to use that are not 
 /docs -> is a folder that has an index.html and associated files in there, which is hosted as a website that is publicly available (unlike the repo, which is currently set to private).
 
 
+# Todo's stap voor step
+
 
 
 
