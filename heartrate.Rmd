@@ -103,7 +103,7 @@ Code chunks are hidden by default, but can be made visible by clicking "Show cod
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "F:/VENI_data_local/exp100/"#"This points to your local data that you have downloaded from SURF" #THIS NEEDS TO BE CHANGED
+localfolder <- "C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" #THIS NEEDS TO BE CHANGED
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -144,7 +144,6 @@ mtlist$ppn <- parse_number(as.character(mtlist$ppn))
 
 # Supporting methods
 This study has been approved by the Ethics Committee Social Sciences (ECSS) of the Radboud University (reference nr.: 22N.002642).
-
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code adding participant and condition information", message = FALSE}
 # add some info about the dataset
