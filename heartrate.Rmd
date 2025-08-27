@@ -54,6 +54,7 @@ link-citations: yes
 ---
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
+#ensures random processes give consistent results
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 knitr::opts_knit$set(root.dir =normalizePath("."))
 #basefolder <- as.character(normalizePath(".")) #make sure to set the wd to source file location
@@ -89,7 +90,7 @@ r_refs("references.bib")
 
 
 ```
-This document contains further information on the supporting methods and results of "TITLE".
+This document contains further information on the supporting methods and results of Heart in Voice.
 For clarity, it is indicated on the right, what sections in the paper the respective part refers to.
 Code chunks are hidden by default, but can be made visible by clicking "Show code".
 
@@ -103,7 +104,7 @@ Code chunks are hidden by default, but can be made visible by clicking "Show cod
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" #THIS NEEDS TO BE CHANGED
+localfolder <- "C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" 
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -139,7 +140,9 @@ for(i in mtf)
 }
 mtlist$ppn <- parse_number(as.character(mtlist$ppn))
 
-
+# triallist combines all trial-related CSVs into a single dataframe.
+# mtlist comines all metadata from multiple files into a single dataframe
+# triallist and mtlist are now in memory and ready to be analyzed in later chunks.
 ```
 
 # Supporting methods
@@ -147,7 +150,7 @@ This study has been approved by the Ethics Committee Social Sciences (ECSS) of t
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code adding participant and condition information", message = FALSE}
 # add some info about the dataset
-participants  <- c(unique(mtlist$ppn))
+participants  <- c(unique(mtlist$ppn)) # uses mtlist as created above
 numpart       <- length(participants)
 
 # number & percentage female & male participants
@@ -199,7 +202,7 @@ This study concerned a two-level wrist-weight manipulation (no weight vs. weight
 For the current pre-registered confirmatory experiment, as planned and supported by a power analysis (see [preregistration](https://osf.io/jhdq4)), we collected *N* = (`r printnum(numpart)`) participants: `r printnum(part_fem, digits = 0)` female, `r printnum(part_male, digits = 0)` male, *M* (*SD*) age = `r printnum(m_age)` (`r printnum(sd_age)`), M (*SD*) body weight = `r printnum(m_weight)` kg (`r printnum(sd_weight)`), *M* (*SD*) body height = `r printnum(m_height)` cm (`r printnum(sd_height)`), *M* (*SD*) BMI = `r printnum(m_bmi)` (`r printnum(sd_bmi)`), *M* (*SD*) triceps skinfold = `r printnum(m_skin)` mm (`r printnum(sd_skin)`).  
 
 ## Exclusions and deviations from pre-registration
-We also performed the experiment with one other participant, but due to an issue with LSL streaming, this dataset could not be synchronized and was lost. Furthermore, due to running over time one participant had to terminate the study earlier about half way through. Note further, that in our pre-registration we wanted to admit participants with a BMI lower than 25, but since participants were difficult to recruit we accepted three participants with slightly higher BMIs too (max BMI of the current dataset: `r printnum(round(max(bmi),1))`). Participants were all able-bodied and did not have any constraints in performing the task. Finally, as stated in the pre-registration we will only report results on the vocalization trials (and not the expiration-only trials).
+We also performed the experiment with one other participant, but due to an issue with LSL streaming, this dataset could not be synchronized and was lost. Furthermore, due to running over time one participant had to terminate the study earlier about half way through. Note further, that in our pre-registration we wanted to admit participants with a BMI lower than 25, but since participants were difficult to recruit we accepted three participants with slightly higher BMIs too (max BMI of the current dataset: `r printnum(round(max(bmi),1))`). Participants were all able-bodied and did not have any constraints in performing the task. Finally, as stated in the pre-registration we here only report results on the vocalization trials. *Expiration trials to be added*
   This means that for this report in total we have N = `r printnum(numpart)` participants, with 636 analyzable trials, with balanced conditions: weight = `r printnum(perc_w)`%,  no movement = `r printnum(perc_pas)`%, internal rotation = `r printnum(perc_int)` %, external rotation = `r printnum(perc_ext)`%, flexion = `r printnum(perc_flex)` %, extension = `r printnum(perc_extens)` %. 
 
 ## Measurements and equipment
@@ -343,7 +346,7 @@ colnames(emgdnomov) <- c('time_s', 'infraspinatus', 'rectus_abdominis', 'pectora
 samplingrate <- 1/mean(diff(emgdnomov$time_s))
 nyquistemg <- samplingrate/2
 
-emgdnomov$time_s <- emgdnomov$time_s-min(emgdnomov$time_s)
+emgdnomov$time_s <- emgdnomov$time_s-min(emgdnomov$time_s) # normalize time
 
 #example with high-pass filter at 0.75 and low-pass filter 3 Hz
 # cutoffhigh = high-pass filter, cutofflow = low-pass filter
@@ -461,7 +464,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = TRUE
+overwrite = FALSE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -664,7 +667,7 @@ exts2 <- read.csv(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex,
 exampleenvelope <- ggplot(exts2, aes(x=time_ms)) +
   geom_path(aes(y=env), size =1) +
   theme_cowplot(12) + 
-  ggtitle('Example trial internal rotation') +
+  ggtitle('Example trial no movement p12') +
   ylab('norm. env') +
   geom_smooth(aes(y=env), method='lm', linetype = 'dashed',color = 'black') +
   xlim(1000, 5000) +
@@ -694,7 +697,7 @@ plot_grid(exampleenvelope, exampleEMG, ncol = 1, align = 'v', axis = 'l')
 ```
 
 
-Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG signals (pectoralis major, rectus abdominis) in the no movement condition.
+Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG signals (pectoralis major, rectus abdominis) together, again in the no movement condition, but now for participant 8.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 #ptest=8
@@ -745,7 +748,7 @@ if(exists("examplenomov"))
 plot_grid(examplenomov)
 }
 ```
-We mainly see activity in the rectus abdominis here, less so in the pectoralis major. Let's plot another trial from a different participant.
+We mainly see activity in the rectus abdominis here, less so in the pectoralis major. Let's plot another trial from yet a different participant, now p10.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 #ptest=8
@@ -1040,7 +1043,7 @@ examplenomovveloc3 <- ggplot(ex5, aes(x=time_ms)) +
   xlab('time (ms)')
 ```
 
-Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the vocal amplitude has been detrended.
+Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the vocal amplitude has been detrended.
 
 ```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example trial (no movement condition) showing the detrended vocal amplitude and the trendline (black), as well as the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
 plot_grid(examplenomov3)
@@ -1053,10 +1056,7 @@ Let's also visualize all the detrended envelope amplitudes. As in our data, part
 nomovement$pp <- as.factor(nomovement$pp)
 
 allenvelopes <- ggplot(nomovement, aes(x=time_ms)) +
-  geom_path(aes(y=env_z_detrend, color=pp)) +
-  #geom_smooth(aes(y=env_z_detrend, color=pptrial), method='lm', linetype = 'dashed') +
-  scale_y_continuous(name = "vocal amplitude (normalized)") +
-  #labs(y="sEMG") +
+  geom_path(aes(y=env_z_detrend, color=pp)) +  scale_y_continuous(name = "vocal amplitude (normalized)") +
   theme_cowplot(12) +
   theme(legend.position = c(0.8, 1)) +
   geom_hline(yintercept= 0) +
@@ -1134,7 +1134,7 @@ exampleparticipant <- nomovement %>%
   facet_wrap(~pptrial)
 ```
 
-```{r exampleparticipant, echo=FALSE, message = FALSE, fig.cap = "Amplitude envelope (black), as well as EMG signals of pectoralis major (purple) and rectus abdominis (orange) for one participant.", fig.height = 6}
+```{r exampleparticipant, echo=FALSE, message = FALSE, fig.cap = "Amplitude envelope (black), as well as EMG signals of pectoralis major (purple) and rectus abdominis (orange) for participant 8.", fig.height = 6}
 plot_grid(exampleparticipant)
 ```
 
@@ -1338,15 +1338,13 @@ nomovement <- nomovement %>%
 plot_grid(heartrateplot)
 ```
 
-
-
 # Supporting results
 In this section, we will run five different analyses on the data to test our three predictions.
 First, we predict that there will be coherence between heart rate and vocalization amplitude ([analysis 1](#analysis-1)).
 Second, we predict that the heartrate effect on the voice is higher at the beginning of vocalizations, because the lungs are more full and thus more likely to be perturbed by the pulsating heart ([analysis 2](#analysis-2)).
 Third, we assume that when the heart rate is faster, coherence between the two time series is higher ([analysis 3](#analysis-3)).
 Fourth, we examine if coherence is correlated with the mean amplitude of the vocal envelope ([analysis 4](#analysis-4)).
-Finally,, assuming that the onset of vocalization is comparable to reaction time and thus may couple with physiological signals, we want to test if it is timed accordance with heart beat or if the relation between the two signals is random ([analysis 5](#analysis-5)).
+Finally, assuming that the onset of vocalization is comparable to reaction time and thus may couple with physiological signals, we want to test if it is timed accordance with heart beat or if the relation between the two signals is random ([analysis 5](#analysis-5)).
 
 ## Is there coherence between heart rate and vocalization? {#analysis-1}
 
