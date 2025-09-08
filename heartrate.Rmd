@@ -39,8 +39,6 @@ output:
 # output: word_document
 # always_allow_html: true
 
-
-
 bibliography: references.bib
 floatsintext: yes
 figurelist: no
@@ -141,7 +139,7 @@ for(i in mtf)
 mtlist$ppn <- parse_number(as.character(mtlist$ppn))
 
 # triallist combines all trial-related CSVs into a single dataframe.
-# mtlist comines all metadata from multiple files into a single dataframe
+# mtlist combines all metadata from multiple files into a single dataframe
 # triallist and mtlist are now in memory and ready to be analyzed in later chunks.
 ```
 
@@ -578,7 +576,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = TRUE
+overwrite = FALSE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -822,7 +820,7 @@ We do this on the envelope time series from 1 to 6 s to avoid any late starts or
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
-overwrite = TRUE
+overwrite = FALSE
 
 if(overwrite==TRUE)
 {
@@ -1144,7 +1142,7 @@ We here use the
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
-overwrite = TRUE #set to true if you want to run this chunk
+overwrite = FALSE #set to true if you want to run this chunk
 
 if(overwrite == TRUE)
 {
@@ -1994,10 +1992,50 @@ For this, we use the heart rate as above (derived from the EMG's FFTs), as well 
 We use this time windows again, to make sure participants are all vocalizing during that time (i.e. they have started and not ended yet).
 Unlike in the other 3 analyses, we here use the raw amplitude trajectory (i.e. non-detrended and non-scaled), scale it by participant, and then compute the mean by trial.
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code ...", message = FALSE}
-#heartrate per trial is stored in tr_wd_nomov$heartrate_EMG_bpm and tr_wd_nomov$heartrate_EMG_hz
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code heart rate versus amplitude", message = FALSE}
 
-#for mean amplitude, we use the envelope without detrending and scaling
+# Create trial ID column in tr_wd to match filenames
+tr_wd$trial_id <- paste0('pp_', tr_wd$ppn, '_trial_', tr_wd$trialindex, '_heartrate_aligned.csv')
+
+# Initialize output data frame
+amp_summary <- data.frame()
+
+# Loop over all trials in tr_wd
+for (i in 1:nrow(tr_wd)) {
+  
+  file_path <- paste0(procd, tr_wd$trial_id[i])
+  
+  if (!file.exists(file_path)) next
+  
+  dat <- read.csv(file_path)
+  
+  # Skip if 'env' column is missing or empty
+  if (!"env" %in% names(dat) || all(is.na(dat$env))) next
+  
+  env_amp <- max(dat$env, na.rm = TRUE) - min(dat$env, na.rm = TRUE)
+  
+  amp_summary <- rbind(amp_summary, data.frame(
+    trial_id = tr_wd$trial_id[i],
+    ppn = tr_wd$ppn[i],
+    trialindex = tr_wd$trialindex[i],
+    heartrate_EMG_bpm = tr_wd$heartrate_EMG_bpm[i],
+    env_amplitude = env_amp
+  ))
+}
+
+# Plotting
+ggplot(amp_summary, aes(x = env_amplitude, y = heartrate_EMG_bpm)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "darkgreen") +
+  labs(
+    title = "Heart Rate vs. Voice Envelope Amplitude",
+    x = "Envelope Amplitude (max - min)",
+    y = "Heart Rate (bpm)"
+  ) +
+  theme_minimal()
+
+# Correlation
+cor.test(amp_summary$env_amplitude, amp_summary$heartrate_EMG_bpm, method = "pearson")
 
 
 ```
@@ -2016,7 +2054,7 @@ We then locate the closest peak in the EMG signal.
 For this, we first locate all the peaks in the EMG signal via pracma::findpeaks(), using a minimum distance between peaks of 0.7 times the duration of one heart cycle (which we can derive from the heart rate, that we have from FFTs; e.g. if heart rate is 60 bpm or 1 Hz, duration would be 1 s) and a minimum peak height of 0, as we scaled the signals by trials.
 We then locate the peak closest to the velocity peak, as well as compute the distance between the two.
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for testing the relation of vocalization onset and heart beat", message = FALSE}
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for testing the relation between vocalization and heartbeat", message = FALSE}
 #prepare data in tsl_fulltime
 tsl_fulltime <- tsl_fulltime %>% 
   mutate(pptrial = stringr::str_replace(uniquetrial, "(\\d+)_+(\\d+)", "\\2_\\1"))
@@ -2165,8 +2203,7 @@ tr_wd_nomov <- tr_wd_nomov %>%
 
 We found the median value of the distance between velocity peak and the closest peak in the EMG signal to be `r printnum(median(tr_wd_nomov$ampEMG_peakdistance))` ms, with a standard deviation of `r printnum(sd(tr_wd_nomov$ampEMG_peakdistance))` ms.
 We computed that by subtracting the timing of the onset of vocalization from the timing of the closest EMG peak/heart beat.
-This way, positive values in the distance can be interpreted as the closest heart beat occurring later than the onset of vocalization. 
-But first, we visualize the peaks to see if they are sensible.
+This way, positive values in the distance can be interpreted as the closes heart beat occuring later than the onset of vocalization. But first, we visualize the peaks to see if they are sensible.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for visualizing the peaks", message = FALSE}
 pectoralis_peaks <- pectoralis_peaks %>% 
