@@ -13,11 +13,11 @@ author:
   affiliation: Donders Institute for Brain, Cognition, and Behaviour
   affiliation_url: https://www.ru.nl/donders/
   orcid_id: 0000-0002-4080-7883
-- name: Lara Burchardt
-  url: https://www.leibniz-zas.de/de/personen/details/burchardt-lara-sophie/lara-sophie-burchardt
-  affiliation: Donders Institute for Brain, Cognition, and Behaviour, ZAS Berlin
-  affiliation_url: https://www.leibniz-zas.de/en/
-  orcid_id: 0000-0002-9210-7934
+- name: Linda Drijvers
+  url: https://www.ru.nl/sensorimotorlab/people/current-members/luc-selen/
+  affiliation: Donders Institute for Brain, Cognition, and Behaviour
+  affiliation_url: https://www.ru.nl/donders/
+  orcid_id: x
 - name: Luc Selen
   url: https://www.ru.nl/sensorimotorlab/people/current-members/luc-selen/
   affiliation: Donders Institute for Brain, Cognition, and Behaviour
@@ -102,7 +102,7 @@ Code chunks are hidden by default, but can be made visible by clicking "Show cod
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" 
+localfolder <- "C:/Research_Projects/veni_local/exp100/" #"C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" 
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -576,7 +576,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = TRUE
+overwrite = FALSE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -645,7 +645,7 @@ if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 ptest=12
-ex2 <- triallist[triallist$vocal_condition=='vocalize' & triallist$movement_condition=='no_movement'& triallist$ppn ==ptest, ]
+ex2 <- triallist[triallist$vocal_condition=='expire' & triallist$movement_condition=='no_movement'& triallist$ppn ==ptest, ]
 ex2 <- ex2[1, ]
 #ex2$trialindex
 if (file.exists(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex, '_heartrate_aligned.csv')))
@@ -700,7 +700,7 @@ Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG sig
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 #ptest=8
 ex3 <- triallist %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
+  dplyr::filter(vocal_condition == "expire") %>% 
   dplyr::filter(movement_condition == "no_movement") %>% 
   dplyr::filter(ppn == 8) #arbitrary but we also chose ppn 8 in the example above
 ex3 <- ex3[2, ]
@@ -752,7 +752,7 @@ We mainly see activity in the rectus abdominis here, less so in the pectoralis m
 #ptest=8
 
 ex4 <- triallist %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
+  dplyr::filter(vocal_condition == "expire") %>% 
   dplyr::filter(movement_condition == "no_movement") %>% 
   dplyr::filter(ppn == 10) #arbitrary but we also chose ppn 8 in the example above
 ex4 <- ex4[3, ]
@@ -822,12 +822,12 @@ We do this on the envelope time series from 1 to 6 s to avoid any late starts or
 
 overwrite = FALSE
 
-if(overwrite==FALSE)
+if(overwrite==TRUE)
 {
 #filter out all trials related to movement, expiration, or practice
 triallist_nomov <- triallist %>% 
   dplyr::filter(movement_condition == "no_movement") %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
+  dplyr::filter(vocal_condition == "expire") %>% 
   dplyr::filter(trial_type == "main")
 tr_wd_nomov <- triallist_nomov
 tr_wd_nomov$highest_veloc_peak_time <- NA
@@ -951,7 +951,7 @@ To make sure that all participants show heart rate in the EMG measured on the an
 ```{r, cache = FALSE, echo = TRUE, warning = FALSE, message = FALSE, code_folding = "Show code"} 
 
 nomovement <- tsl %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
+  dplyr::filter(vocal_condition == "expire") %>% 
   dplyr::filter(movement_condition == "no_movement")
 
 nomovement <- nomovement %>% 
@@ -1306,7 +1306,7 @@ As a next step, we will visualize the heart rate findings from the FFT.
 
 #first filter out the expire cases (they should be gone anyways)
  tr_wd_nomov <- tr_wd_nomov %>% 
-   dplyr::filter(vocal_condition == 'vocalize')
+   dplyr::filter(vocal_condition == 'expire')
 
 #create new dataset for plotting
 heartrate <- tr_wd_nomov %>% 
@@ -1324,8 +1324,6 @@ heartrateplot <- heartrate %>%
   # scale_color_manual(values = c('#e7298a', '#d95f02')) +
   theme(legend.position="top") +
   theme_cowplot(12) 
-
-
 
 #also create the new EMG column in nomovement, so that rectus is taken from participant 9, otherwise all are pectoralis
 nomovement <- nomovement %>%
@@ -1356,7 +1354,7 @@ Setting replace to FALSE ensures that no trial occurs twice in the shuffled vers
 
 Coherence is then computed for each trial between the detrended amplitude envelope and the pectoralis major EMG signal for real and false pairs via seewave::coh().
 
-```{r, warning = FALSE, echo = TRUE, cache=FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
+```{r, warning = FALSE, echo = TRUE, cache = FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
 ### create real and false pairs
 # real pairs: use trial pairings as recorded
 # false pairs: take tr_wd_nomov$uniquetrials and randomly combine them
@@ -1393,7 +1391,15 @@ tr_wd_nomov$pptrial_shuffled <- shuffle_until_no_matches(tr_wd_nomov$pptrial)
 falsepairs <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(!(ID %in% unique(nomovement$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if(ID %in% unique(nomovement$pptrial)) # CHECK!!!
+  {
   shuffleID <- tr_wd_nomov$pptrial_shuffled[tr_wd_nomov$pptrial==ID]
+  if(shuffleID %in% unique(nomovement$pptrial))
+  {
   #for all time series there are either 12,497 (n=73) or 12,498 (n=55) data points, so we'll shorten them all to 12,496 (so it is divisible by 2 for later analysis of first and second half)
   #pick time & and envelope from the ID part
   time_ms <- nomovement %>% 
@@ -1425,6 +1431,8 @@ for(ID in tr_wd_nomov$pptrial)
 
   falsepairs_temp <- cbind.data.frame(time_ms, env_z_detrend, rectus_abdominis, pectoralis_major, EMG, ID, shuffleID)
   falsepairs <- rbind(falsepairs, falsepairs_temp)
+    }
+  }
 }
 
 #rename 2 columns in falsepairs for uniformity across datasets
@@ -1539,7 +1547,11 @@ heartrate_coh_temp <- data.frame()
 #since there is no value at the exact frequency, we choose the closest one
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(ID %in% unique(tr_wd_nomov$pptrial))
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+  if(!is.na(heartrate_hz))
+  {
   coherence_realpairs_temp <- coherence_realpairs %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_realpairs_temp$frequency - heartrate_hz))
@@ -1548,23 +1560,35 @@ for(ID in tr_wd_nomov$pptrial)
   
   heartrate_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   heartrate_coh <- rbind(heartrate_coh, heartrate_coh_temp)
+  }
+  }
 }
 
-#do the same for false pairs
+#do the same for false pairs (CHECK!! WIM)
 heartrate_coh_false <- data.frame()
 heartrate_coh_temp_false <- data.frame()
 
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(ID %in% unique(tr_wd_nomov$pptrial))
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+  if(!is.na(heartrate_hz))
+  {
   coherence_falsepairs_temp <- coherence_falsepairs %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_falsepairs_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_falsepairs_temp$frequency[closest_index]
   coherence <- coherence_falsepairs_temp$coherence[closest_index]
   
+  if(!length(closest_index)==0)
+  {
+  
   heartrate_coh_temp_false <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   heartrate_coh_false <- rbind(heartrate_coh_false, heartrate_coh_temp_false)
+  }
+  }
+  }
 }
 
 ```
@@ -1626,6 +1650,12 @@ granger_temp <- data.frame()
 
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(!(ID %in% unique(nomovement$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if(ID %in% unique(nomovement$pptrial)) # CHECK!!!
+  {
   granger_temp <- realpairs %>% 
     dplyr::filter(pptrial == ID) %>% 
     grangertest(env_z_detrend ~ EMG, order = 1, data = .)
@@ -1633,6 +1663,7 @@ for(ID in tr_wd_nomov$pptrial)
   granger_temp$pptrial <- ID
   
   granger <- rbind(granger, granger_temp[2, ])
+  }
 }
 
 #now do the same but switch envelope and EMG signal around
@@ -1641,6 +1672,12 @@ granger_reverse_temp <- data.frame()
 
 for(ID in tr_wd_nomov$pptrial)
 {
+  if (!(ID %in% unique(nomovement$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if (ID %in% unique(nomovement$pptrial)) # CHECK!!!
+  {
   granger_reverse_temp <- realpairs %>% 
     dplyr::filter(pptrial == ID) %>% 
     grangertest(EMG ~ env_z_detrend, order = 1, data = .)
@@ -1648,6 +1685,7 @@ for(ID in tr_wd_nomov$pptrial)
   granger_reverse_temp$pptrial <- ID
   
   granger_reverse <- rbind(granger_reverse, granger_reverse_temp[2, ])
+  }
 }
 
 ```
@@ -1839,15 +1877,24 @@ firsthalf_real_coh <- data.frame()
 #since there is no value at the exact frequency, we choose the closest one
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(!(ID %in% unique(tr_wd_nomov$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if (ID %in% unique(tr_wd_nomov$pptrial)) # CHECK!!!
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
   coherence_firsthalf_real_temp <- coherence_firsthalf_real %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_firsthalf_real_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_firsthalf_real_temp$frequency[closest_index]
   coherence <- coherence_firsthalf_real_temp$coherence[closest_index]
-  
+  if (!length(closest_index)==0)
+  {
   firsthalf_real_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   firsthalf_real_coh <- rbind(firsthalf_real_coh, firsthalf_real_coh_temp)
+  }
+  }
 }
 
 #now for false pairs in firsthalf
@@ -1856,15 +1903,25 @@ firsthalf_false_coh <- data.frame()
 
 for(ID in tr_wd_nomov$pptrial)
 {
+  if (!(ID %in% unique(tr_wd_nomov$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if (ID %in% unique(tr_wd_nomov$pptrial)) # CHECK!!!
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
   coherence_firsthalf_false_temp <- coherence_firsthalf_false %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_firsthalf_false_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_firsthalf_false_temp$frequency[closest_index]
   coherence <- coherence_firsthalf_false_temp$coherence[closest_index]
-  
+  if (!length(closest_index)==0)
+  {
+
   firsthalf_false_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   firsthalf_false_coh <- rbind(firsthalf_false_coh, firsthalf_false_coh_temp)
+  }
+  }
 }
 
 
@@ -1876,15 +1933,24 @@ secondhalf_real_coh <- data.frame()
 #since there is no value at the exact frequency, we choose the closest one
 for(ID in tr_wd_nomov$pptrial)
 {
+  if(!(ID %in% unique(tr_wd_nomov$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if (ID %in% unique(tr_wd_nomov$pptrial)) # CHECK!!!
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
   coherence_secondhalf_real_temp <- coherence_secondhalf_real %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_secondhalf_real_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_secondhalf_real_temp$frequency[closest_index]
   coherence <- coherence_secondhalf_real_temp$coherence[closest_index]
-  
+  }
+  if (!length(closest_index)==0)
+  {
   secondhalf_real_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   secondhalf_real_coh <- rbind(secondhalf_real_coh, secondhalf_real_coh_temp)
+  }
 }
 
 #now for false pairs in secondhalf
@@ -1893,15 +1959,24 @@ secondhalf_false_coh <- data.frame()
 
 for(ID in tr_wd_nomov$pptrial)
 {
+  if (!(ID %in% unique(tr_wd_nomov$pptrial)))
+  {
+    print(paste0("ID ", ID, " not found in nomovement dataset"))
+  }
+  if (ID %in% unique(tr_wd_nomov$pptrial)) # CHECK!!!
+  {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
   coherence_secondhalf_false_temp <- coherence_secondhalf_false %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_secondhalf_false_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_secondhalf_false_temp$frequency[closest_index]
   coherence <- coherence_secondhalf_false_temp$coherence[closest_index]
-  
+  }
+  if (!length(closest_index)==0)
+  {
   secondhalf_false_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   secondhalf_false_coh <- rbind(secondhalf_false_coh, secondhalf_false_coh_temp)
+  }
 }
 ```
 
@@ -1987,50 +2062,6 @@ knitr::kable(format(round(modelsummary_coherence_heartrate, digits = 3)),
 ```
 
 
-## Is heart rate related to the mean amplitude? {#analysis-4}
-Here we want to test if the average amplitude of the vocal envelope is related to heart rate in the same trial.
-For this, we use the heart rate as above (derived from the EMG's FFTs), as well as the mean of the vocal amplitude from 1 to 6 s.
-We use this time windows again, to make sure participants are all vocalizing during that time (i.e. they have started and not ended yet).
-Unlike in the other 3 analyses, we here use the raw amplitude trajectory (i.e. non-detrended and non-scaled), scale it by participant, and then compute the mean by trial.
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code heart rate versus amplitude", message = FALSE}
-
-
-# Step 1 load in the enriched triallistdata with EMG heart rate estimtates (prviously called tr_wd_nomov and saved as)
-
-triallistfn <- paste0(procdtot, "fulldata_heartrate.csv")
-triallist <- read.csv(triallistfn)
-unique_id <- paste0(triallist$ppn, triallist$trialindex)
-
-triallist$mean_env <- NA
-triallist$sd <- NA
-
-
-for(i in 1:nrow(triallist))
-{
-  # identify index and ppn e.g., zscal_pp_3_trial_32_heartrate_aligned
-  filents <- paste0(procd,"zscal_pp_", triallist$ppn[i], "_trial_", triallist$trialindex[i], "_heartrate_aligned.csv")
-  
-  tstemp <- read.csv(filents)
-  
-  # TO DO: Should we only take the mean of 1:6 seconds, if not already the case?
-  # to do
-  triallist$mean_env[i] <- mean(tstemp$env) # mean
-  triallist$sd[i] <- sd(tstemp$env)
-}
-
-write.csv(triallist, paste0(procdtot, "fulldata_heartvoice.csv"))
-```
-
-```{r}
-
-# lets plot 
-a <- ggplot(triallist, aes(x=heartrate_pectoralisfft_hz, y = sd, color = as.factor(ppn))) + geom_point() + geom_smooth(method="lm", alpha=0) + theme_bw()
-
-a
-```
-
-
 ## Does the onset of vocalization coincide with a heart beat? {#analysis-5}
 
 To address this question, we use a less constrained version of the data used above.
@@ -2062,6 +2093,12 @@ pectoralis_peaks <- data.frame()
 
  for(ID in tr_wd_nomov$pptrial)
  {
+   if (!(ID %in% unique(nomovement$pptrial)))
+   {
+     print(paste0("ID ", ID, " not found in nomovement dataset"))
+   }
+   if (ID %in% unique(nomovement$pptrial)) # CHECK!!!
+   {
    heartrate_duration <- tr_wd_nomov$heartrate_EMG_duration[tr_wd_nomov$pptrial==ID] #Note for Wim: for this, we can also use the mean distance between peaks, either via pectoralis_peaks$index (then you directly have index) or pectoralis_peaks$time
    index_duration <- 0.0004 #temporal distance between rows is 0.0004 s, as sampling rate is 2500 Hz
    heartrate_duration_indices <- heartrate_duration / index_duration 
@@ -2092,7 +2129,7 @@ pectoralis_peaks <- data.frame()
    pectoralis_peaks_temp$pptrial <- ID
    pectoralis_peaks <- rbind(pectoralis_peaks, pectoralis_peaks_temp)
  }
-
+}
 
 tr_wd_nomov <- tr_wd_nomov %>% 
   mutate(ampEMG_peakdistance = closest_EMG_peak_fft - highest_veloc_peak_time)
@@ -2114,6 +2151,12 @@ pectoralis_peaks_shuffled <- data.frame()
 
 for(shuffleID in tr_wd_nomov$pptrial_shuffled)
  {
+  if (!(shuffleID %in% unique(nomovement$pptrial)))
+   {
+     print(paste0("ID ", shuffleID, " not found in nomovement dataset"))
+  }
+   if (shuffleID %in% unique(nomovement$pptrial)) # CHECK!!!
+   {
    #get the corresponding ID from pptrial
    ID <- tr_wd_nomov$pptrial[tr_wd_nomov$pptrial_shuffled == shuffleID]
    #pick the heart rate_duration from the randomly assigned EMG signal
@@ -2141,7 +2184,10 @@ for(shuffleID in tr_wd_nomov$pptrial_shuffled)
   pectoralis_peaks_shuffled_temp$velocity_peak <- tr_wd_nomov %>% 
     dplyr::filter(pptrial_shuffled == shuffleID) %>% 
     pull(highest_veloc_peak_time) / 1000
-    
+    if(length(pectoralis_peaks_shuffled_temp$velocity_peak)> 0)
+    {
+      if (length(which.min(abs(pectoralis_peaks_shuffled_temp$time - pectoralis_peaks_shuffled_temp$velocity_peak))) > 0)
+      {
   #use vocalization onset; computed above via peak velocity of amplitude envelope of vocalization
    tr_wd_nomov$closest_EMG_peak_fft_shuffled[tr_wd_nomov$pptrial_shuffled==shuffleID] <- pectoralis_peaks_shuffled_temp$time[which.min(abs(pectoralis_peaks_shuffled_temp$time - pectoralis_peaks_shuffled_temp$velocity_peak))] * 1000
    
@@ -2151,7 +2197,10 @@ for(shuffleID in tr_wd_nomov$pptrial_shuffled)
    
    pectoralis_peaks_shuffled_temp$pptrial_shuffled <- shuffleID
    pectoralis_peaks_shuffled <- rbind(pectoralis_peaks_shuffled, pectoralis_peaks_shuffled_temp)
- }
+      }
+    }
+   }
+}
 
 #finally, compute the distance between the randomly assigned closest EMG peak and the highest velocity peak time
 tr_wd_nomov <- tr_wd_nomov %>% 
