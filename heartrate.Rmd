@@ -1,7 +1,7 @@
 ---
-title: "Heart rate in the voice"
+title: "Mechanisms of heart-voice coupling: an ode to Orlikoff"
 description: | 
-  Supporting information
+  Extended results and supporting information
 author:
 - name: Marijn Hafkamp
   url: https://orcid.org/0000-0002-3719-7586
@@ -50,6 +50,8 @@ draft: no
 noextraspace: yes
 link-citations: yes
 ---
+This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Mechanisms of heart-voice coupling: an ode to Orlikoff". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository (redacted for review).
+
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
 #ensures random processes give consistent results
@@ -88,17 +90,6 @@ r_refs("references.bib")
 
 
 ```
-This document contains further information on the supporting methods and results of Heart in Voice.
-For clarity, it is indicated on the right, what sections in the paper the respective part refers to.
-Code chunks are hidden by default, but can be made visible by clicking "Show code".
-
-# Supporting methods and results
- This is a fully computationally reproducible manuscript written in R Markdown. The full dataset is available at the Donders Repository (redacted for review).
- 
-<aside>
-<span style="color: red;"> This refers to the section "Supporting information" of the paper.
-</span>
-</aside>
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
@@ -143,157 +134,20 @@ mtlist$ppn <- parse_number(as.character(mtlist$ppn))
 # triallist and mtlist are now in memory and ready to be analyzed in later chunks.
 ```
 
-# Supporting methods
-This study has been approved by the Ethics Committee Social Sciences (ECSS) of the Radboud University (reference nr.: 22N.002642).
+## Signal preparation
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code adding participant and condition information", message = FALSE}
-# add some info about the dataset
-participants  <- c(unique(mtlist$ppn)) # uses mtlist as created above
-numpart       <- length(participants)
+### EMG pre-processing
 
-# number & percentage female & male participants
-part_fem <- round(sum(mtlist$sex=='f'), 1)
-perc_fem  <- round((sum(mtlist$sex=='f')/numpart)*100, 1)
-part_male <- round(sum(mtlist$sex=='m'), 1)
-perc_male <- round((sum(mtlist$sex=='m')/numpart)*100, 1)
+Rather than filtering the EMG signal to reduce heart rate artifacts [@drakeEliminationElectrocardiogramContamination2006], we were interested in the heart rate as present in the EMG signal. Accordingly, we removed any higher-frequency components from the signal and retained low-frequency bands, while removing the very low components to avoid baseline drift. This was done by high-pass filtering the signal at 0.75 Hz using a zero-phase 4th order Butterworth filter. We then full-wave rectified the EMG signal and applied a zero-phase low-pass 4th order Butterworth filter at 3 Hz. When filtering any signal we padded the signals to avoid edge effects.
 
-# body info
-m_age           <- round(mean(mtlist$age), 1)
-sd_age          <- round(sd(mtlist$age), 1)
-m_weight        <- round(mean(mtlist$weight), 1)
-sd_weight       <- round(sd(mtlist$weight), 1)
-m_height        <- round(mean(mtlist$height), 1)
-sd_height       <- round(sd(mtlist$height), 1)
-bmi             <- mtlist$weight/((mtlist$height/100)^2)
-m_bmi           <- round(mean(bmi), 1)
-sd_bmi          <- round(sd(bmi), 1)
-
-# other body measurements
-  # Function to calculate the mean of a character vector
-  mean_of_char_vector <- function(vec) {
-    mean(as.numeric(vec))}
-
-skinfold  <- strsplit(mtlist$upperarmfold, '_')
-# Applying the function to each element of the list and storing the results in a new vector
-skinfs    <- sapply(skinfold, mean_of_char_vector)
-m_skin    <- round(mean(skinfs), 1)
-sd_skin   <- round(sd(skinfs), 1)
-# we also measure upper/under arm length (but will leave it at this)
-
-# read data
-tr_wd <- read.csv(paste0(procdtot, 'fulldata.csv'))
-tr_wd <- subset(tr_wd, trialindex > 8 & vocal_condition=='vocalize') #only real trials and only vocalization
-numtrials = nrow(tr_wd)
-perc_w = round((sum(tr_wd$weight_condition=='weight')/numtrials)*100, 1) #percentage weight
-perc_pas = round((sum(tr_wd$movement_condition=='no movement')/numtrials)*100, 1) #percentage passive
-perc_int = round((sum(tr_wd$movement_condition=='internal rotation')/numtrials)*100, 1) #percentage internal rotation
-perc_ext = round((sum(tr_wd$movement_condition=='external rotation')/numtrials)*100, 1) #percentage external rotation
-perc_flex = round((sum(tr_wd$movement_condition=='flexion')/numtrials)*100, 1) #percentage flexion
-perc_extens = round((sum(tr_wd$movement_condition=='extension')/numtrials)*100, 1) #percentage extension
-
-```
-
-## Experimental design
-This study concerned a two-level wrist-weight manipulation (no weight vs. weight), a two-level within-subject vocalization condition (expire vs. vocalize), and a five-level within-subject movement condition (‘no movement’, ‘extension’, ‘flexion’, ‘external rotation’, ‘internal rotation’). With 4 trial repetitions over the experiment, we yield 80 (2 weights x 2 vocalizations x 5 movements x 4 repetitions) trials per participant. Trials were blocked by weight condition and vocalization condition (so that weights and task did not switch from trial to trial). Within blocks all movement conditions were randomized.
-
-## Participants
-For the current pre-registered confirmatory experiment, as planned and supported by a power analysis (see [preregistration](https://osf.io/jhdq4)), we collected *N* = (`r printnum(numpart)`) participants: `r printnum(part_fem, digits = 0)` female, `r printnum(part_male, digits = 0)` male, *M* (*SD*) age = `r printnum(m_age)` (`r printnum(sd_age)`), M (*SD*) body weight = `r printnum(m_weight)` kg (`r printnum(sd_weight)`), *M* (*SD*) body height = `r printnum(m_height)` cm (`r printnum(sd_height)`), *M* (*SD*) BMI = `r printnum(m_bmi)` (`r printnum(sd_bmi)`), *M* (*SD*) triceps skinfold = `r printnum(m_skin)` mm (`r printnum(sd_skin)`).  
-
-## Exclusions and deviations from pre-registration
-We also performed the experiment with one other participant, but due to an issue with LSL streaming, this dataset could not be synchronized and was lost. Furthermore, due to running over time one participant had to terminate the study earlier about half way through. Note further, that in our pre-registration we wanted to admit participants with a BMI lower than 25, but since participants were difficult to recruit we accepted three participants with slightly higher BMIs too (max BMI of the current dataset: `r printnum(round(max(bmi),1))`). Participants were all able-bodied and did not have any constraints in performing the task. Finally, as stated in the pre-registration we here only report results on the vocalization trials. *Expiration trials to be added*
-  This means that for this report in total we have N = `r printnum(numpart)` participants, with 636 analyzable trials, with balanced conditions: weight = `r printnum(perc_w)`%,  no movement = `r printnum(perc_pas)`%, internal rotation = `r printnum(perc_int)` %, external rotation = `r printnum(perc_ext)`%, flexion = `r printnum(perc_flex)` %, extension = `r printnum(perc_extens)` %. 
-
-## Measurements and equipment
-
-###  Body measurements
-To enable future analyses of possible factors modulating individual-specific body properties, we collect some basic information about body properties. Namely, weight, under arm length, upper arm length, triceps skinfold, and upper arm circumference.
-
-### Experiment protocol
-The experiment was coded in Python using functions from PsychoPy. The experiment was controlled via a Brainvision Button Box (Brain Products GmbH, Munich, Germany), which was also streaming its output to the data collection PC unit.
-
-### Wrist weights
-To manipulate the mass set in motion, we apply a wrist weight. We use a TurnTuri sports wrist weight of 1 kg.
-
-### Video and kinematics
-The participants are recorded via a videocamera (Logitech StreamCam), sampling at 60 frames per second. We used Mediapipe [@lugaresiMediaPipeFrameworkBuilding2019] to track the skeleton and facial movements, which is implemented in Masked-piper which we also use for masking the videos [@owoyeleMaskedpiperMaskingPersonal2022]. The motion-tracked skeleton, specifically the wrist of the dominant hand, is used to estimate movement initiation, peak speed, and the end of the movement. The motion tracking is, however, only used for determining movement windows, and is not of central concern.
-
-### Muscle activity (Surface ElectroMyography: sEMG)
-We measured sEMG using a wired BrainAmp ExG system (Brain Products GmbH, Munich, Germany). Disposable surface electrodes (Kendall 24mm Arbo H124SG) were used, and for each of the four muscle targets we had 3 (active, reference, ground) electrodes (12 electrodes total). The sEMG system sampled at 2,500 Hz (for post-processing filters see below).   
-For an overview of the electrode attachments, see Fig. S\@ref(fig:overviewEMGmuscles). We prepare the skin surface for EMG application with a scrub gel (NuPrep) followed by cotton ball swipe with alcohol (Podior 70 %). Active and reference electrodes were attached with a 15mm distance center to center. 
-
-```{r overviewEMGmuscles, echo=FALSE, fig.cap =  "Overview sEMG target muscles. Active (a) and reference (r), and ground (g) sEMG electrodes, for each muscle target."}
-knitr::include_graphics(paste0(basefolder, '/after_edited_plots/emg_measurements_overview.png'))
-```
-<aside>
-<span style="color: red;"> This refers to Figure S1 in the paper.
-</span>
-</aside>
-
-We attached electrodes for focal muscles which directly participate in the internal (pectoralis major) and external rotation (infraspinatus) of the humerus. Electrodes were applied for focal muscles ipsilaterally (relative to the dominant hand). We attached electrodes to the muscle belly of the clavicular head of the pectoralis major, with a ground electrode on the clavicle on the opposite side.  
-We also attached electrodes for postural muscles which will likely anticipate and react to postural perturbations due to upper limb movements. Since these muscles should act in the opposite direction of the postural perturbation of the dominant hand, we applied electrodes contralaterally to the dominant hand. We attach electrodes to the rectus abdominis, with a ground electrode on the iliac crest on the opposite side. We also attached electrodes to the erector spinae muscle group (specifically, the iliocostalis lumborum).
-
-### Ground reaction measurements
-We used an inhouse-built 1m² balance board with vertical pressure sensors. The sensors were derived and remodified from the Wii-Balance board sensors. The sampling rate was 400 Hz. The system was time-locked within millisecond accuracy, and has a spatial accuracy of several sub-millimeters. A national instruments card, USB-62221 performed the A/D conversion and was connected via USB to the PC.
-
-### Acoustics
-To ensure proper acoustic intensity measurements we used a headset microphone; MicroMic C520 (AKG, Inc.) headset condenser cardioid microphone sampling at 16 kHz. The gain levels of the condenser power source were set by the hardware (and could not be changed).
-
-Here is one audio example from a male participant producing the sustained vocalization in the no movement condition without added weight.
-
-```{r, message = FALSE, warning = FALSE, echo = FALSE, code_folding = "Show code setting up the audio examples"}
-library(htmltools)
-
-audioexamples <- paste0(basefolder, "/AudioExamples/")
-
-audioexample_nomovement       <- paste0(audioexamples, "sample1_nomovement.wav")
-# audioexample_internalrotation <- paste0(audioexamples, "sample2_internalrotation.wav")
-# audioexample_flexion          <- paste0(audioexamples, "sample3_flexion.wav")
-# audioexample_externalrotation <- paste0(audioexamples, "sample4_externalrotation.wav")
-# audioexample_extension        <- paste0(audioexamples, "sample5_extension.wav")
-
-html_tag_audio <- function(file, type = c("wav")) {
-  type <- match.arg(type)
-  htmltools::tags$audio(
-    controls = NA,
-    htmltools::tags$source(
-      src = file,
-      type = glue::glue("audio/{type}", type = type)
-    )
-  )
-}
-```
-
-```{r audiexamplenomovement, message = FALSE, warning = FALSE, echo = FALSE}
-html_tag_audio(audioexample_nomovement, type = "wav")
-```
-
-### Recording setup and synchronization
-We use [LabStreamLayer](https://github.com/sccn/labstreaminglayer) that provides a uniform interface for streaming different signals along a network, where a common time stamp for each signal ensures sub-millisecond synchronization. We used a Linux system to record and stream the microphone recordings. Additionally a second PC collected video, and streamed ground reaction forces, and EMG. A data collection PC collected the audio, ground reaction force, and EMG streams and stored the output in XDF format for efficient storing of multiple time-varying signals. The video data was synchronized by streaming the frame number to the LSL recorder, allowing us to match up individual frames with the other signals (even when a frame is dropped).
-
-## Procedure
-Participants are admitted to the study based on exclusion criteria and sign an informed consent. We ask participants to take off their shoes and we proceed with the body measurements, while instructing the participant about the nature of the study. After body measurements, we apply the surface EMG. We prepared the muscle site with rubbing gel and alcohol, and active/reference electrodes were placed with a distance of 15 mm from each other's center. See Fig. S\@ref(fig:overviewEMGmuscles) for the sEMG electrode locations. The procedures up to the start of the experiment take about 20 minutes or less in total.
-
-Upon the start of the experiment participants take a standing position on the force platform. The experiment commences with calibration and practice trials. First, 10 seconds of silent breathing with body movements are recorded. Then participants are asked to take a maximum inspiration followed by a maximum expiration to measure signal conditions under respiratory boundary conditions. Then, for the practice trials, each movement was practiced with expiring and vocalization while performing the movement conditions, and the participant is introduced to wearing the wrist weight of 1 kg. After practice trials, participants performed 80 blocked trials.
-
-For each (practice) trial participants are closely guided by the information on the monitor. Firstly, participants are shown the movement to be performed for the trial, and have to prompt the experimenter that they are ready to continue. Then participants are instructed to adopt the start position of the movement, which is a 90 degree elbow flexion, with either an externally rotated humerus (start position for internal rotation), or a non-rotated humerus with the wrist in front of the body (rest position for the other movement conditions). For the no movement condition participants are asked to rest their arms alongside their body. Upon trial start, participants are asked to inhale deeply with a timer counting down from 4 seconds. Then, participants are asked to 'vocalize' or 'expire', with a screen appearing after 3 seconds to perform the movement with visual guidance to where the movement end position is so that participants are reminded of the movement. After an additional 4 seconds the trial ends, which allows more than enough time to perform the movement and stabilize vocalization after the perturbation. In the no movement condition, a prompt is given to maintain one's posture.
-
-## Preprocessing of the data streams
-
-### EMG
-
-Rather than filtering the EMG signal to reduce heart rate artifacts [@drakeEliminationElectrocardiogramContamination2006], we are particularly interested in the heart rate as present in the EMG signal.
-We thus remove any higher-frequency components from the signal and retain low-frequency bands, while removing the very low components to avoid baseline drift.
-This is done by high-pass filtering the signal at 0.75 Hz using a zero-phase 4th order Butterworth filter.
-We then full-wave rectified the EMG signal and applied a zero-phase low-pass 4th order Butterworth filter at 3 Hz.
-When filtering any signal we pad the signals to avoid edge effects.
-In other words, the pass-band from 0.75 to 3 Hz allows us to cover any heart rates from 45 to 180 beats per minute.
+In other words, the pass-band from 0.75 to 3 Hz allowed us to cover any heart rates from 45 to 180 beats per minute.
 
 ```{r, EMGpreprocess, warning = FALSE, echo = TRUE, code_folding = "Show code creating function for preprocessing EMG data", message = FALSE}
 # load in the data and save it
 library(signal)
 library(ggrepel)
 
-#####################preprocessing functions
+# preprocessing functions
 butter.it <- function(x, samplingrate, order, cutoff, type = "low")
 {
   nyquist <- samplingrate/2
@@ -331,8 +185,7 @@ samplingrate <- 1/mean(diff(emgd$time_s))
 nyquistemg <- samplingrate/2
 ```
 
-
-When applying the filter as specified above, this is what the EMG signal looks like for a participant in the no movement condition.
+When applying the filter as specified above, this is what the EMG signal looked like for a participant in the no movement condition.
 
 ```{r, EMGpreprocessnomovement, warning = FALSE, echo = TRUE, code_folding = "Show code preprocessing EMG data", message = FALSE}
 #show another example, now from no movement condition
@@ -424,8 +277,8 @@ To further inspect, which ones are more apt for studying heart rate, we have sep
 grid.arrange(filteredEMGnomovpec, filteredEMGnomovrectus, filteredEMGnomoverector, filteredEMGnomovinfra, nrow = 2)
 ```
 
-### Acoustics
-For acoustics we extract the smoothed amplitude envelope (hereafter envelope). For the envelope we apply a Hilbert transform to the waveform signal, then take the complex modulus to create a 1D time series, which is then resampled at 2,500 Hz, and smoothed with a Hann filter based on a Hanning Window of 12 Hz. We normalize the amplitude envelope signals within participants before submitting to analyses.
+### Acoustics pre-processing
+For acoustics we extracted the smoothed amplitude envelope. For the envelope we applied a Hilbert transform to the waveform signal of the vocal intensity, then took the complex modulus to create a 1D time series, which we then resampled at 2,500 Hz, and smoothed with a Hann filter based on a Hanning Window of 12 Hz. We normalized the amplitude envelope signals within participants before submitting to analyses.
 
 ```{r, message = FALSE, warning = FALSE, echo = TRUE, code_folding = "Show code extracting acoustics"}
 library(rPraat) #for reading in sounds
@@ -561,12 +414,9 @@ for(ID in triallist$uniquetrial)
 }
 ```
 
-### Data sharing & Privacy
- Video data is deidentified using the masked-piper tool to mask faces and body while maintaining kinematic information [@owoyeleMaskedpiperMaskingPersonal2022].
-
-## Overview data analyses
-Note that there is a general decline in the amplitude of the vocalization during a trial (see Fig. \@ref(fig:combinedtimeseries), top panel). This is to be expected, as the subglottal pressure falls when the lungs deflate. To quantify deviations from stable vocalizations, we therefore detrend the amplitude envelope time series, so as to assess positive or negative peaks relative to this trend line.
-We scale the two EMG signals by using the mean and standard deviation from the middle section, i.e. 1 to 6 s, which we also use in most of the analyses here. This provides a better scaling, as the times outside of that range can have quite high/low values.
+### Detrending and normalization
+Note that there is a general decline in the amplitude of the vocalization during a trial (see Fig. \@ref(fig:combinedtimeseries), top panel). This is to be expected, as the subglottal pressure falls when the lungs deflate. To quantify deviations from stable vocalizations, we therefore detrended the amplitude envelope time series, so as to assess positive or negative peaks relative to this trend line.
+Moreover, we scaled the two EMG signals by using the mean and standard deviation from the middle section, i.e. 1 to 6 s, which we also used in most of the analyses here. This provides a better scaling, as the times outside of that range can have quite high/low values.
 
 ```{r normalization_EMG, cache = FALSE, ECHO = TRUE, code_folding = "Show code scaling data within participant"}
 #We have to do some within participant scaling, such that
@@ -643,59 +493,7 @@ if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 }
 ```
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
-ptest=12
-ex2 <- triallist[triallist$vocal_condition=='vocalize' & triallist$movement_condition=='no_movement'& triallist$ppn ==ptest, ]
-ex2 <- ex2[1, ]
-#ex2$trialindex
-if (file.exists(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex, '_heartrate_aligned.csv')))
-{
-exts2 <- read.csv(paste0(procd, 'zscal_pp_', ex2$ppn, '_trial_', ex2$trialindex, '_heartrate_aligned.csv'))
-#exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
-  exts2 <- subset(exts2, time_s_c > 1 & time_s_c <5)
-  exts2 <- exts2[seq(1, nrow(exts2), by = 5), ]    #downsample by a 5th
-  exts2$time_ms <- round(exts2$time_s_c*1000)
-  # fp <- pracma::findpeaks(exts2$speed)
-  # fp <- fp[which.max(fp[,1]),]
-  # startmov <- exts2$time_ms[fp[3]]
-  # endmov   <- exts2$time_ms[fp[4]]
-  # ps       <- exts2$time_ms[fp[2]]
-#apply movement rule to centralize trials
-#here all processing steps are performed, and data aligned
-exampleenvelope <- ggplot(exts2, aes(x=time_ms)) +
-  geom_path(aes(y=env), size =1) +
-  theme_cowplot(12) + 
-  ggtitle('Example trial no movement p12') +
-  ylab('norm. env') +
-  geom_smooth(aes(y=env), method='lm', linetype = 'dashed',color = 'black') +
-  xlim(1000, 5000) +
-  xlab('time (ms)')
-
-
-exampleEMG <- ggplot(exts2, aes(x=time_ms)) +
-  #geom_path(aes(y=infraspinatus, color = 'infraspinatus')) +
-  geom_path(aes(y=pectoralis_major, color = 'pectoralis major')) +
-  geom_path(aes(y=rectus_abdominis, color = 'rectus abdominis')) +
-  #geom_path(aes(y=erector_spinae, color = 'erector spinae')) +
-  scale_color_manual(values = colors_mus) +
-  labs(y="sEMG") +
-  theme_cowplot(12) +
-  theme(legend.position = "bottom") +
-  xlim(1000, 5000) +
-  xlab('time (ms)')
-}
-```
-
-```{r combinedtimeseries, echo=FALSE, message = FALSE, fig.cap = "Combined time series. One example trial and the associated EMG signals are shown, for the no movement condition with vocalization. We determine a detrending line using linear regression for the 1 to 5 s after the vocalization prompt.", fig.height = 6}
-# check if object exists
-if (exists("exampleenvelope") & exists("exampleEMG"))
-{
-plot_grid(exampleenvelope, exampleEMG, ncol = 1, align = 'v', axis = 'l')
-}
-```
-
-
-Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG signals (pectoralis major, rectus abdominis) together, again in the no movement condition, but now for participant 8.
+Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG signals (pectoralis major, rectus abdominis) for participant 8 in the no movement condition.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 #ptest=8
@@ -746,83 +544,13 @@ if(exists("examplenomov"))
 plot_grid(examplenomov)
 }
 ```
-We mainly see activity in the rectus abdominis here, less so in the pectoralis major. Let's plot another trial from yet a different participant, now p10.
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
-#ptest=8
-
-ex4 <- triallist %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
-  dplyr::filter(movement_condition == "no_movement") %>% 
-  dplyr::filter(ppn == 10) #arbitrary but we also chose ppn 8 in the example above
-ex4 <- ex4[3, ]
-#ex2$trialindex
-if (file.exists(paste0(procd, 'zscal_pp_', ex4$ppn, '_trial_', ex4$trialindex, '_heartrate_aligned.csv')))
-{
-exts4 <- read.csv(paste0(procd, 'zscal_pp_', ex4$ppn, '_trial_', ex4$trialindex, '_heartrate_aligned.csv'))
-#exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
-  exts4 <- subset(exts4, time_s_c > 0 & time_s_c <7)
-  exts4 <- exts4[seq(1, nrow(exts4), by = 5), ]    #downsample by a 5th
-  exts4$time_ms <- round(exts4$time_s_c*1000)
-
-examplenomov2 <- ggplot(exts4, aes(x=time_ms)) +
-  #geom_path(aes(y=infraspinatus, color = 'infraspinatus')) +
-  geom_path(aes(y=scale(pectoralis_major), color = 'pectoralis major')) +
-  geom_path(aes(y=scale(rectus_abdominis), color = 'rectus abdominis')) +
-  geom_path(aes(y=scale(env)), color="black") +
-  geom_smooth(aes(y=scale(env)), method='lm', linetype = 'dashed',color = 'black') +
-  scale_color_manual(values = colors_mus) +
-  scale_y_continuous(
-    name = "sEMG",
-    sec.axis = sec_axis(~., name="vocal amplitude (normalized)")
-  ) +
-  theme_cowplot(12) +
-  theme(legend.position = c(0.8, 1)) +
-  geom_hline(yintercept= 0) +
-  xlim(1000, 7000) +
-  xlab('time (ms)')
-}
-```
-
-```{r combinedtimeseriesnomov2, echo=FALSE, message = FALSE, fig.cap = "Example trial (no movement condition) showing the vocal amplitude and the respective trendline (black), as well as the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
-if (exists("examplenomov2"))
-{
-plot_grid(examplenomov2)
-}
-```
-
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
-numnomovement_vocalize <- triallist %>% 
-  dplyr::filter(vocal_condition == "vocalize") %>% 
-  dplyr::filter(movement_condition == "no_movement") %>% 
-  dplyr::filter(trial_type == "main")
-
-numnomovement_expire <- triallist %>% 
-  dplyr::filter(vocal_condition == "expire") %>% 
-  dplyr::filter(movement_condition == "no_movement") %>% 
-  dplyr::filter(trial_type == "main")
-```
-
-In total, there are `r nrow(numnomovement_vocalize)` trials from the no movement condition with voicing.
-From the expiration condition, which we will not use here, there are `r nrow(numnomovement_expire)` no movement trials.
-
-From the z-scored envelope, we calculate velocity of the envelope.
-This is then used to find and locate the first peak in velocity, which is the onset of vocalization.
-We then locate the closest peaks in the EMG signal of the pectoralis major and the rectus abdominis.
-The number of peaks in those EMG signals in the recorded time span is also used to calculate a participant's heart rate.
-
-As a next step, we de-trend the amplitude envelope using the package pracma.
-We do this on the envelope time series from 1 to 6 s to avoid any late starts or early finishes to mess with the de-trending line.
-
-
 
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
 overwrite = FALSE
 
-if(overwrite==TRUE)
+if(overwrite==FALSE)
 {
 #filter out all trials related to movement, expiration, or practice
 triallist_nomov <- triallist %>% 
@@ -904,6 +632,7 @@ for(ID in tr_wd_nomov$uniquetrial)
   #now create tsl, where we shorten the time span, so we can detrend
   #take the first 1 to 6 seconds
   ts <- ts[(ts$time_ms>1000) & (ts$time_ms < 6000), ]
+  
   ts$env_z_detrend <- pracma::detrend(ts$env_z, tt = 'linear') # detrend the envelope
 
   subts <- ts
@@ -1048,7 +777,7 @@ plot_grid(examplenomov3)
 ```
 
 
-Let's also visualize all the detrended envelope amplitudes. As in our data, participants were given the cue to start vocalizing at time = 0 s, we should check when they start vocalizing.
+Let's also visualize all the detrended envelope amplitudes. 
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 nomovement$pp <- as.factor(nomovement$pp)
@@ -1112,33 +841,32 @@ allrectus <- ggplot(nomovement, aes(x=time_ms)) +
 plot_grid(allrectus)
 ```
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
+# ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
+# 
+# exampleparticipant <- nomovement %>% 
+#   dplyr::filter(pp == "8") %>% 
+#   ggplot(aes(x=time_ms)) +
+#   geom_path(aes(y=env_z_detrend), color="black") +
+#   #geom_smooth(aes(y=env_z_detrend, color="black"), method='lm', linetype = 'dashed') +
+#   geom_path(aes(y=rectus_abdominis, color = 'rectus abdominis')) +
+#   geom_path(aes(y=pectoralis_major, color = 'pectoralis major')) +
+#   #scale_y_continuous(name = "vocal amplitude (normalized)") +
+#   #labs(y="sEMG") +
+#   theme_cowplot(12) +
+#   scale_color_manual(values = colors_mus) +
+#   geom_hline(yintercept= 0) +
+#   xlim(1000, 6000) +
+#   xlab('time (ms)') +
+#   theme(legend.position = "bottom") +
+#   facet_wrap(~pptrial)
+#```
 
-exampleparticipant <- nomovement %>% 
-  dplyr::filter(pp == "8") %>% 
-  ggplot(aes(x=time_ms)) +
-  geom_path(aes(y=env_z_detrend), color="black") +
-  #geom_smooth(aes(y=env_z_detrend, color="black"), method='lm', linetype = 'dashed') +
-  geom_path(aes(y=rectus_abdominis, color = 'rectus abdominis')) +
-  geom_path(aes(y=pectoralis_major, color = 'pectoralis major')) +
-  #scale_y_continuous(name = "vocal amplitude (normalized)") +
-  #labs(y="sEMG") +
-  theme_cowplot(12) +
-  scale_color_manual(values = colors_mus) +
-  geom_hline(yintercept= 0) +
-  xlim(1000, 6000) +
-  xlab('time (ms)') +
-  theme(legend.position = "bottom") +
-  facet_wrap(~pptrial)
-```
+# ```{r exampleparticipant, echo=FALSE, message = FALSE, fig.cap = "Amplitude envelope (black), as well as EMG signals of pectoralis major (purple) and rectus abdominis (orange) for participant 8.", fig.height = 6}
+# plot_grid(exampleparticipant)
+# ```
 
-```{r exampleparticipant, echo=FALSE, message = FALSE, fig.cap = "Amplitude envelope (black), as well as EMG signals of pectoralis major (purple) and rectus abdominis (orange) for participant 8.", fig.height = 6}
-plot_grid(exampleparticipant)
-```
-
-The next code chunk runs FFTs on the two EMG signals.
-We use this to determine the frequency component with the highest magnitude, which is the participant's heart rate.
-We here use the 
+The next code chunk runs FFTs on the two EMG signals. We use this to determine the frequency component with the highest magnitude, which is the participant's heart rate.
+ 
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
@@ -1264,8 +992,7 @@ tr_wd_nomov <- tr_wd_nomov %>%
   mutate(heartrate_EMG_bpm = if_else(ppn == 9, heartrate_rectusfft_bpm, heartrate_pectoralisfft_bpm))
 ```
 
-We can now visualize all the FFTs by participant.
-The frequency with the highest magnitude is what we will later use as their heartrate, after multiplying it by 60 to convert it to bpm, which is more common for heartrates. 
+We can now visualize all the FFTs by participant. The frequency with the highest magnitude is what we use as the heartrate, after multiplying it by 60 to convert it to beats per minute (bpm). 
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the plot", message = FALSE}
 fftplot_rectus <- ggplot(df_fft, aes(x=frequency))+
@@ -1296,10 +1023,7 @@ plot_grid(fftplot_pectoralis)
 ```{r fftplotrectus, echo=FALSE, message = FALSE, fig.cap = "All spectra for the rectus abdominis EMG signals (via FFT) by all participants shown in one plot..", fig.height = 20, fig.width=10}
 plot_grid(fftplot_rectus)
 ```
-In our analyses, we will use the pectoralis major data, as they are closest to the heart.
-Since for participant 9 (i.e. trials 9_13 to 9_84) the EMG signal (and hence the resulting FFTs) for the pectoralis major were quite messy but the rectus abdominis looked fine, we chose to use the rectus abdominis signal for this participant.
-
-As a next step, we will visualize the heart rate findings from the FFT.
+In our analyses, we used the pectoralis major data, as they were closest to the heart. Since for participant 9 (i.e. trials 9_13 to 9_84) the EMG signal (and hence the resulting FFTs) for the pectoralis major were quite messy but the rectus abdominis looked fine, we chose to use the rectus abdominis signal for this participant.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the plot", message = FALSE}
 
@@ -1336,24 +1060,20 @@ nomovement <- nomovement %>%
 plot_grid(heartrateplot)
 ```
 
-# Supporting results
-In this section, we will run five different analyses on the data to test our three predictions.
-First, we predict that there will be coherence between heart rate and vocalization amplitude ([analysis 1](#analysis-1)).
-Second, we predict that the heartrate effect on the voice is higher at the beginning of vocalizations, because the lungs are more full and thus more likely to be perturbed by the pulsating heart ([analysis 2](#analysis-2)).
-Third, we assume that when the heart rate is faster, coherence between the two time series is higher ([analysis 3](#analysis-3)).
-Fourth, we examine if coherence is correlated with the mean amplitude of the vocal envelope ([analysis 4](#analysis-4)).
-Finally, assuming that the onset of vocalization is comparable to reaction time and thus may couple with physiological signals, we want to test if it is timed accordance with heart beat or if the relation between the two signals is random ([analysis 5](#analysis-5)).
+# Hypothesis testing
 
-## Is there coherence between heart rate and vocalization? {#analysis-1}
+In this section, tested two hypotheses.  
 
-To test this question, we compute coherence between the pectoralis major EMG signal and amplitude envelope time series.
-We do this for real pairs, i.e. both time series are from the same trial, and false pairs, i.e. the two signals are randomly combined across trials.
+## Hypothesis 1: The amplitude of the sustained vowel vocalization is coherent with the cardiac activity 
 
-The false pairs are created by using base R's sample(), which creates a shuffled, random vector of the trials.
-It is supported by a safety net function that makes sure that no trial in the original and the new vector are the same and that no false pair consists of trials from the same participant.
+To test this hypothesis, we computed the coherence between the pectoralis major EMG signal and amplitude envelope time series.
+We did so for real pairs, i.e. both time series are from the same trial, and false pairs, i.e. the two signals are randomly combined across trials.
+
+The false pairs we created by using base R's sample(), which creates a shuffled, random vector of the trials.
+It was supported by a safety net function that makes sure that no trial in the original and the new vector are the same and that no false pair consists of trials from the same participant.
 Setting replace to FALSE ensures that no trial occurs twice in the shuffled version.
 
-Coherence is then computed for each trial between the detrended amplitude envelope and the pectoralis major EMG signal for real and false pairs via seewave::coh().
+Coherence was then computed for each trial between the detrended amplitude envelope and the pectoralis major EMG signal for real and false pairs via seewave::coh().
 
 ```{r, warning = FALSE, echo = TRUE, cache=FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
 ### create real and false pairs
@@ -1526,8 +1246,8 @@ coherence_pairs_plot <- coherence_pairs %>%
 plot_grid(coherence_pairs_plot)
 ```
 
-We extract the coherence value at the point where the vertical lines were drawn in the plot for visualization (or rather at the closest frequency value in the coherence data, as the data is not continuous).
-That gives us the coherence value at the frequency of heart rate in a given trial.
+We extracted the coherence value at the point where the vertical lines were drawn in the plot for visualization (or rather at the closest frequency value in the coherence data, as the data is not continuous).
+That gave us the coherence value at the frequency of heart rate in a given trial.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for extracting coherence at frequency of heart rate", message = FALSE}
 #now extract the coherence values at the point of heartrate
@@ -1568,8 +1288,7 @@ for(ID in tr_wd_nomov$pptrial)
 
 ```
 
-Now that we have those coherence values, we can plot them and test if there is a difference in coherence values for real and false pairs.
-Fig. \@ref(fig:coherencerealfalsepairsplot) shows the difference in coherence values for false and right pairs.
+Subsequently, we plotted the coherence values and tested if there was a difference in coherence values for real and false pairs. Fig. \@ref(fig:coherencerealfalsepairsplot) shows the difference in coherence values for false and right pairs.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the boxplot", message = FALSE}
 #first we merge the two dataframes for plotting & modeling
@@ -1615,50 +1334,14 @@ knitr::kable(format(round(modelsummary_realfalse_coherence, digits = 3)),
   kable_paper("hover", full_width = T)
 ```
 
-As the coherence testing above only shows whether or not two time series have a relationship, we also run a Granger causality test to examine directionality.
-We will run it both ways to test if it is the heart beat (i.e. EMG signal) affecting the voice (i.e. amplitude envelope) and/or vice versa.
+## Hypothesis 2: The heart-voice coupling is more pronounced at the beginning of the vocalization, when the lungs are full
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code setting up Granger causality test", message = FALSE}
-#first run it with with envelope predicted by EMG
-granger <- data.frame()
-granger_temp <- data.frame()
-
-for(ID in tr_wd_nomov$pptrial)
-{
-  granger_temp <- realpairs %>% 
-    dplyr::filter(pptrial == ID) %>% 
-    grangertest(env_z_detrend ~ EMG, order = 1, data = .)
-  
-  granger_temp$pptrial <- ID
-  
-  granger <- rbind(granger, granger_temp[2, ])
-}
-
-#now do the same but switch envelope and EMG signal around
-granger_reverse <- data.frame()
-granger_reverse_temp <- data.frame()
-
-for(ID in tr_wd_nomov$pptrial)
-{
-  granger_reverse_temp <- realpairs %>% 
-    dplyr::filter(pptrial == ID) %>% 
-    grangertest(EMG ~ env_z_detrend, order = 1, data = .)
-  
-  granger_reverse_temp$pptrial <- ID
-  
-  granger_reverse <- rbind(granger_reverse, granger_reverse_temp[2, ])
-}
-
-```
-
-## Is the heart rate effect on the voice stronger at the beginning of vocalizations? {#analysis-2}
-
-To test this question, we split the trials into first half and second half.
-The first half include data from 1001 to 3500 ms, the second half from 3500 to 5999 ms.
-Then we compute coherence between the amplitude envelope and EMG signal (real pairs only here).
-Finally, we compare if coherence is higher in the first half when compared to the second half.
-For reference, we also include false and real pairs for the first and second half again.
-Therefore we have four data sets here (first vs second half, and real vs false pairs).
+To test this hypothesis, we split the trials into first half and second half.
+The first half included data from 1001 to 3500 ms, the second half from 3500 to 5999 ms.
+Then we computed the coherence between the amplitude envelope and EMG signal (real pairs only here).
+Finally, we compared the coherence in the first half to that in the second half.
+For reference, we also included false and real pairs for the first and second half.
+As such, we had four data sets here (first vs second half, and real vs false pairs).
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for coherence in split time series", message = FALSE}
 #we will here use realpairs and falsepairs from above, which are already shortened to 12,496 data points
@@ -1752,7 +1435,7 @@ coherence_firsthalf_false <- coherence_firsthalf_false %>%
 
 coherence_firsthalf <- rbind(coherence_firsthalf_real, coherence_firsthalf_false)
 
-### same for secondhalf
+### same for second half
 coherence_secondhalf_real <- secondhalf_real %>%
   group_by(pptrial) %>%
   reframe(coh = coh(env_z_detrend, EMG, f = 2500, plot = F))
@@ -1931,7 +1614,11 @@ coherence_firstsecondhalf_plot <- ggplot(firstsecondhalf_coherence, aes(x = half
 plot_grid(coherence_firstsecondhalf_plot)
 ```
 
-## Is coherence related to heart rate? {#analysis-3}
+# Exploratory analyses
+
+In this section, we performed a pair of analyses on our data without a-prior expectations. 
+
+## Is the strength of the heart-voice coupling related to heart rate? 
 
 For this question, we first compute the heart rate from the EMG signal for each trial via Fast Fourier Transform (FFT) and convert it to the more usual beats per minute (bpm).
 
@@ -1985,74 +1672,17 @@ knitr::kable(format(round(modelsummary_coherence_heartrate, digits = 3)),
   kable_paper("hover", full_width = T)
 ```
 
+## Does the onset of vocalization coincide with a heart beat?
 
-## Is heart rate related to the mean amplitude? {#analysis-4}
-Here we want to test if the average amplitude of the vocal envelope is related to heart rate in the same trial.
-For this, we use the heart rate as above (derived from the EMG's FFTs), as well as the mean of the vocal amplitude from 1 to 6 s.
-We use this time windows again, to make sure participants are all vocalizing during that time (i.e. they have started and not ended yet).
-Unlike in the other 3 analyses, we here use the raw amplitude trajectory (i.e. non-detrended and non-scaled), scale it by participant, and then compute the mean by trial.
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code heart rate versus amplitude", message = FALSE}
-
-# Create trial ID column in tr_wd to match filenames
-tr_wd$trial_id <- paste0('pp_', tr_wd$ppn, '_trial_', tr_wd$trialindex, '_heartrate_aligned.csv')
-
-# Initialize output data frame
-amp_summary <- data.frame()
-
-# Loop over all trials in tr_wd
-for (i in 1:nrow(tr_wd)) {
-  
-  file_path <- paste0(procd, tr_wd$trial_id[i])
-  
-  if (!file.exists(file_path)) next
-  
-  dat <- read.csv(file_path)
-  
-  # Skip if 'env' column is missing or empty
-  if (!"env" %in% names(dat) || all(is.na(dat$env))) next
-  
-  env_amp <- max(dat$env, na.rm = TRUE) - min(dat$env, na.rm = TRUE)
-  
-  amp_summary <- rbind(amp_summary, data.frame(
-    trial_id = tr_wd$trial_id[i],
-    ppn = tr_wd$ppn[i],
-    trialindex = tr_wd$trialindex[i],
-    heartrate_EMG_bpm = tr_wd$heartrate_EMG_bpm[i],
-    env_amplitude = env_amp
-  ))
-}
-
-# Plotting
-ggplot(amp_summary, aes(x = env_amplitude, y = heartrate_EMG_bpm)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = TRUE, color = "darkgreen") +
-  labs(
-    title = "Heart Rate vs. Voice Envelope Amplitude",
-    x = "Envelope Amplitude (max - min)",
-    y = "Heart Rate (bpm)"
-  ) +
-  theme_minimal()
-
-# Correlation
-cor.test(amp_summary$env_amplitude, amp_summary$heartrate_EMG_bpm, method = "pearson")
-
-
-```
-
-
-
-## Does the onset of vocalization coincide with a heart beat? {#analysis-5}
-
-To address this question, we use a less constrained version of the data used above.
+To address this question, we used a less constrained version of the data used above.
 For the amplitude envelope detrending to work properly, we had to remove sections of silence in the beginning and the end (before onset and after offset of vocalization) and thus opted for using only vocalization from 1000 to 6000 ms.
-As we are interested in the onset of vocalization here, we have to include any time from 0 ms, i.e. right from when the cue to vocalize was given.
-Using the velocity of the envelope, we have calculated the onset of vocalizations above.
+As we were interested in the onset of vocalization here, we had to include any time from 0 ms, i.e. right from when the cue to vocalize was given.
+Using the velocity of the envelope, we had calculated the onset of vocalizations above.
 Measured in relation to the vocalization cue (at 0 ms), the median value of it is `r printnum(median(tr_wd_nomov$highest_veloc_peak_time), digits = 1)` ms with a standard deviation of `r printnum(sd(tr_wd_nomov$highest_veloc_peak_time), digits = 1)` ms.
 
-We then locate the closest peak in the EMG signal.
-For this, we first locate all the peaks in the EMG signal via pracma::findpeaks(), using a minimum distance between peaks of 0.7 times the duration of one heart cycle (which we can derive from the heart rate, that we have from FFTs; e.g. if heart rate is 60 bpm or 1 Hz, duration would be 1 s) and a minimum peak height of 0, as we scaled the signals by trials.
-We then locate the peak closest to the velocity peak, as well as compute the distance between the two.
+We then located the closest peak in the EMG signal.
+For this, we first located all the peaks in the EMG signal via pracma::findpeaks(), using a minimum distance between peaks of 0.7 times the duration of one heart cycle (which we derived from the heart rate, that we have from FFTs; e.g. if heart rate is 60 bpm or 1 Hz, duration would be 1 s) and a minimum peak height of 0, as we scaled the signals by trials.
+We then located the peak closest to the velocity peak, as well as computed the distance between the two.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for testing the relation between vocalization and heartbeat", message = FALSE}
 #prepare data in tsl_fulltime
@@ -2203,7 +1833,7 @@ tr_wd_nomov <- tr_wd_nomov %>%
 
 We found the median value of the distance between velocity peak and the closest peak in the EMG signal to be `r printnum(median(tr_wd_nomov$ampEMG_peakdistance))` ms, with a standard deviation of `r printnum(sd(tr_wd_nomov$ampEMG_peakdistance))` ms.
 We computed that by subtracting the timing of the onset of vocalization from the timing of the closest EMG peak/heart beat.
-This way, positive values in the distance can be interpreted as the closes heart beat occuring later than the onset of vocalization. But first, we visualize the peaks to see if they are sensible.
+This way, positive values in the distance could be interpreted as the closes heart beat occuring later than the onset of vocalization. But first, we visualized the peaks to see if they are sensible.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code for visualizing the peaks", message = FALSE}
 pectoralis_peaks <- pectoralis_peaks %>% 
@@ -2232,8 +1862,8 @@ allpectoralis_peaks <- ggplot() +
 ```{r pectoralispeaks, echo=FALSE, message = FALSE, fig.cap = "Plot showing the pectoralis major EMG signal with the automatically detected peaks overlaid as dots. The dashed line indicates the onset of vocalization for that particular trial.", fig.height = 20, fig.width = 10}
 plot_grid(allpectoralis_peaks)
 ```
-Next, we normalize the distance by the respective duration of one heart cycle and thus transform it to degrees.
-We then plot the density of the respective degrees into a straight plot (see Fig. \@ref(fig:degreesflat)) where we include both negative and positive values. 
+Next, we normalized the distance by the respective duration of one heart cycle and thus transformed it to degrees.
+We then plotted the density of the respective degrees into a straight plot (see Fig. \@ref(fig:degreesflat)) where we include both negative and positive values. 
 We also show the density distribution in a circular plot, where the values are absolutized (see Fig. \@ref(fig:degreescircle)).
 
 
