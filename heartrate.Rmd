@@ -315,7 +315,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = FALSE
+overwrite = TRUE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -426,7 +426,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = FALSE
+overwrite = TRUE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
