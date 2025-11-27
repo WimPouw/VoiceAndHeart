@@ -85,7 +85,7 @@ Code chunks are hidden by default, but can be made visible by clicking "Show cod
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "D:/ResearchProjects/veni_locals/vocalization/" #"C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF" 
+localfolder <- "D:/Research_projects/veni_data_local/expire/exp100/" #"C:/Users/hafkamp.m/Documents/GitHub/VoiceAndHeart/large_data/exp100/"#"This points to your local data that you have downloaded from SURF"
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -445,7 +445,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = FALSE
+overwrite = TRUE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -559,7 +559,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = FALSE
+overwrite = TRUE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -803,7 +803,7 @@ We do this on the envelope time series from 1 to 6 s to avoid any late starts or
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
-overwrite = FALSE
+overwrite = TRUE
 
 if(overwrite==TRUE)
 {
@@ -1126,7 +1126,7 @@ We here use the
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
-overwrite = FALSE #set to true if you want to run this chunk
+overwrite = TRUE #set to true if you want to run this chunk
 
 if(overwrite == TRUE)
 {

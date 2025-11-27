@@ -5,35 +5,30 @@ description: |
 author:
 - name: Marijn Hafkamp
   url: https://orcid.org/0000-0002-3719-7586
-  affiliation: Donders Institute for Brain, Cognition, and Behaviour
-  affiliation_url: https://www.ru.nl/donders/
+  affiliation: Radboud University Nijmegen, Donders Institute for Brain, Cognition, and Behaviour
   orcid_id: 0000-0002-3719-7586
 - name: Raphael Werner
   url: https://raphael-werner.github.io/
   affiliation: Donders Institute for Brain, Cognition, and Behaviour
-  affiliation_url: https://www.ru.nl/donders/
   orcid_id: 0000-0002-4080-7883
-- name: Lara Burchardt
+- name: Linda Drijvers
   url: https://www.leibniz-zas.de/de/personen/details/burchardt-lara-sophie/lara-sophie-burchardt
-  affiliation: Donders Institute for Brain, Cognition, and Behaviour, ZAS Berlin
-  affiliation_url: https://www.leibniz-zas.de/en/
-  orcid_id: 0000-0002-9210-7934
+  affiliation: Donders Institute for Brain, Cognition, and Behaviour
+  orcid_id: 0000-0001-9154-7033
 - name: Luc Selen
   url: https://www.ru.nl/sensorimotorlab/people/current-members/luc-selen/
   affiliation: Donders Institute for Brain, Cognition, and Behaviour
-  affiliation_url: https://www.ru.nl/donders/
   orcid_id: 0000-0001-5774-5415
 - name: Wim Pouw
   corresponding: yes
   email: wim.pouw@donders.ru.nl
   url: https://wimpouw.com/
-  affiliation: Donders Institute for Brain, Cognition, and Behaviour
-  affiliation_url: https://www.ru.nl/donders/
+  affiliation: Tilburg University, Department of Computational Cognitive Science
   orcid_id: 0000-0003-2729-6502
   address: Thomas van Aquinolaan 4, 6525 AJ Nijmegen, The Netherlands
 ---
 
-This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Mechanisms of heart-voice coupling: an ode to Orlikoff". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository (redacted for review).
+This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Dissociating mechanisms of heart-voice coupling". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository (redacted for review).
 
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
@@ -76,7 +71,7 @@ r_refs("references.bib")
  
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
-localfolder <- "D:/ResearchProjects/veni_locals/vocalization/"#"This points to your local data that you have downloaded from SURF" 
+localfolder <- "D:/Research_projects/veni_data_local/vocalization/exp100/"#"This points to your local data that you have downloaded from SURF" 
 
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
@@ -453,25 +448,13 @@ if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
   pectoralis_mean <- mean(sbscale$pectoralis_major)
   pectoralis_sd <- sd(sbscale$pectoralis_major)
   
-  #center the 2 signals
-  # sb$pectoralis_major <- ave(sb$pectoralis_major, sb$tr, FUN = function(x){x<-x-mean(x, na.rm=TRUE)})       
-  # sb$rectus_abdominis <- ave(sb$rectus_abdominis, sb$tr, FUN = function(x){x<-x-mean(x, na.rm=TRUE)}) 
-  
   #now scale & center the 2 EMG signals by using these values
   sb$rectus_abdominis <- ave(sb$rectus_abdominis, sb$tr, FUN = function(x){x <- (x - rectus_mean) / rectus_sd})
   sb$pectoralis_major <- ave(sb$pectoralis_major, sb$tr, FUN = function(x){x <- (x - pectoralis_mean) / pectoralis_sd})
-  
-  #mr$erector_spinae <- ave(mr$erector_spinae, mr$tr, FUN = function(x)scale(x, center = T))     
+  # scale env
   sb$env_z <- ave(sb$env, sb$tr, FUN = function(x)scale(x, center = T))
-    
-    #subset
-    #center motion per trial
-    #sb$x_wrist <- sb$x_wrist-mean(sb$x_wrist,na.rm=TRUE)
-    #sb$y_wrist <- sb$y_wrist-mean(sb$y_wrist,na.rm=TRUE)
-    #sp <- c(0, sqrt(diff(sb$x_wrist)^2+diff(sb$y_wrist)^2))
-    #sp[is.na(sp)] <- 0 #there are some trailing NA's which we fill with 0 
-    #sb$speed <- butter.it(sp, samplingrate = 2500, order = 4, cutoff = 5)
-    write.csv(sb, paste0(procd, 'zscal_', f))
+  # write away
+  write.csv(sb, paste0(procd, 'zscal_', f))
   }
 }
 ```
@@ -533,7 +516,7 @@ plot_grid(examplenomov)
 
 overwrite = FALSE
 
-if(overwrite==FALSE)
+if(overwrite==TRUE)
 {
 #filter out all trials related to movement, expiration, or practice
 triallist_nomov <- triallist %>% 
@@ -653,7 +636,7 @@ tsl_fulltime <- tsl_fulltime %>%
 tsl_fulltime$pectoralis_major[is.na(tsl_fulltime$pectoralis_major)] <- 0 #there are some trailing NA's which we fill with 0 
 tsl_fulltime$rectus_abdominis[is.na(tsl_fulltime$rectus_abdominis)] <- 0
 
-tr_wd$ppn <- ifelse(tr_wd$ppn%in%c(41, 42), 4, tr_wd$ppn)
+tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn)
 
 ```
 
@@ -705,58 +688,121 @@ filteredEMGnomovrectus <- ggplot(emgdnomov[seq(1, nrow(emgdnomov),by=5),], aes(x
   theme(legend.position = "none")
 ```
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE, warning=FALSE}
+library(gridExtra)
 
-ex5 <- subset(nomovement, tr == "pp_10_trial_36_heartrate_aligned.csv") 
+# Select example trials
+ex5 <- subset(nomovement, nomovement$tr %in% unique(nomovement$tr[nomovement$pp==8])[1:5])
 
-
-#normalize
-ex5$pectoralis_major  <- scale(ex5$pectoralis_major)
-ex5$rectus_abdominis  <- scale(ex5$rectus_abdominis)
-
-#exts5 <- subset(ex5, time_s_c > 0 & time_s_c <7)
-#exts5 <- exts5[seq(1, nrow(exts5), by = 5), ]    #downsample by a 5th
+# Normalize
+ex5$EMG <- scale(ex5$EMG)
 ex5$time_ms <- round(ex5$time_s_c*1000)
 
+# Function to create time series plot for one trial
+create_timeseries <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  ggplot(trial_data, aes(x=time_ms)) +
+    geom_path(aes(y=scale(EMG), color = 'pectoralis major'), size = 0.5) +
+    geom_path(aes(y=scale(env_z_detrend)), color="black", size = 0.5) +
+    scale_color_manual(values = colors_mus) +
+    scale_y_continuous(
+      name = "EMG/ECG",
+      sec.axis = sec_axis(~., name="Vocal amplitude"),
+      limits = c(-2, 2.5)
+    ) +
+    theme_cowplot(12) +
+    theme(legend.position = "none") +
+    geom_hline(yintercept= 0, linetype = 2, size = 0.3) +
+    scale_x_continuous(limits = c(1000, 6000), breaks = seq(1000, 6000, 1000)) +
+    xlab('Time (ms)') +
+    ggtitle(trial_id)
+}
 
-examplenomov3 <- ggplot(ex5, aes(x=time_ms)) +
-  #geom_path(aes(y=infraspinatus, color = 'infraspinatus')) +
-  geom_path(aes(y=scale(pectoralis_major), color = 'pectoralis major')) +
-  geom_path(aes(y=scale(rectus_abdominis), color = 'rectus abdominis')) +
-  geom_path(aes(y=env_z_detrend), color="black") +
-  geom_smooth(aes(y=env_z_detrend), method='lm', linetype = 'dashed',color = 'black') +
-  scale_color_manual(values = colors_mus) +
-  scale_y_continuous(
-    name = "sEMG",
-    sec.axis = sec_axis(~., name="vocal amplitude (normalized)")
-  ) +
-  #labs(y="sEMG") +
-  theme_cowplot(12) +
-  theme(legend.position = c(0.8, 1)) +
-  geom_hline(yintercept= 0) +
-  xlim(0, 7000) +
-  xlab('time (ms)')
+# Function to create Lissajous plot for one trial (square)
+create_lissajous <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  ggplot(trial_data, aes(x = scale(EMG), y = scale(env_z_detrend))) +
+    geom_path(alpha = 0.6, size = 0.5) +
+    geom_point(alpha = 0.1, size = 0.3) +
+    labs(x = "EMG", y = "Vocal amplitude") +
+    theme_cowplot(12) +
+    coord_fixed(ratio = 1) +
+    theme(aspect.ratio = 1)
+}
 
-examplenomovveloc3 <- ggplot(ex5, aes(x=time_ms)) +
-  #geom_path(aes(y=infraspinatus, color = 'infraspinatus')) +
-  geom_path(aes(y=env_z_veloc), color="black") +
-  scale_color_manual(values = colors_mus) +
-  scale_y_continuous(
-    name = "sEMG",
-    sec.axis = sec_axis(~., name="vocal amplitude (normalized)")
-  ) +
-  #labs(y="sEMG") +
-  theme_cowplot(12) +
-  theme(legend.position = c(0.8, 1)) +
-  geom_hline(yintercept= 0) +
-  xlim(0, 7000) +
-  xlab('time (ms)')
+# Function to create FFT overlay plot
+create_fft_plot <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  # Remove NAs
+  trial_data <- trial_data[!is.na(trial_data$EMG) & !is.na(trial_data$env_z_detrend), ]
+  
+  # Compute FFT for EMG
+  N_emg <- length(trial_data$EMG)
+  fft_emg <- abs(fft(scale(trial_data$EMG)))
+  half_N_emg <- floor(N_emg/2)
+  freq_emg <- seq(0, length.out = half_N_emg) * 2500 / N_emg
+  fft_emg_half <- fft_emg[1:half_N_emg]
+  fft_emg_norm <- fft_emg_half / max(fft_emg_half)
+  
+  # Compute FFT for envelope
+  N_env <- length(trial_data$env_z_detrend)
+  fft_env <- abs(fft(scale(trial_data$env_z_detrend)))
+  half_N_env <- floor(N_env/2)
+  freq_env <- seq(0, length.out = half_N_env) * 2500 / N_env
+  fft_env_half <- fft_env[1:half_N_env]
+  fft_env_norm <- fft_env_half / max(fft_env_half)
+  
+  # Create dataframes
+  df_emg <- data.frame(frequency = freq_emg, power = fft_emg_norm, signal = "EMG")
+  df_env <- data.frame(frequency = freq_env, power = fft_env_norm, signal = "Envelope")
+  df_fft <- rbind(df_emg, df_env)
+  
+  # Filter to 0.5-3 Hz
+  df_fft <- df_fft[df_fft$frequency >= 0.5 & df_fft$frequency <= 3, ]
+  
+  # Get heart rate for vertical line
+  hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == trial_id]
+  
+  ggplot(df_fft, aes(x = frequency, y = power, color = signal, fill = signal)) +
+    geom_area(alpha = 0.5, position = "identity") +
+    geom_line(alpha = 0.8, size = 0.8) +
+    scale_color_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
+    scale_fill_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
+    geom_vline(xintercept = hr_hz, linetype = 2, color = "gray20", size = 0.5) +
+    labs(x = "Frequency (Hz)", y = "Normalized power") +
+    scale_x_continuous(limits = c(0.5, 3), breaks = seq(0.5, 3, 0.5)) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+    theme_cowplot(12) +
+    theme(legend.position = c(0.85, 0.85),
+          legend.title = element_blank(),
+          legend.background = element_rect(fill = "white", color = NA))
+}
+
+# Create combined plots for each trial
+trial_ids <- unique(ex5$pptrial)
+all_plots <- list()
+
+for(i in seq_along(trial_ids)) {
+  ts_plot <- create_timeseries(ex5, trial_ids[i])
+  lj_plot <- create_lissajous(ex5, trial_ids[i])
+  fft_plot <- create_fft_plot(ex5, trial_ids[i])
+  
+  all_plots[[i]] <- grid.arrange(ts_plot, lj_plot, fft_plot, 
+                                  ncol = 3, 
+                                  widths = c(1.2, 1, 1.2))
+}
+
+
 ```
 
 Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the vocal amplitude has been detrended.
 
 ```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example trial (no movement condition) showing the detrended vocal amplitude and the trendline (black), as well as the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
-plot_grid(examplenomov3)
+# Stack all trials vertically
+do.call(grid.arrange, c(all_plots, ncol = 1))
 ```
 
 
@@ -980,9 +1026,6 @@ fftplot_pectoralis <- ggplot(df_fft, aes(x=frequency))+
 plot_grid(fftplot_pectoralis)
 ```
 
-```{r fftplotrectus, echo=FALSE, message = FALSE, fig.cap = "All spectra for the rectus abdominis EMG signals (via FFT) by all participants shown in one plot..", fig.height = 20, fig.width=10}
-plot_grid(fftplot_rectus)
-```
 In our analyses, we used the pectoralis major data, as they were closest to the heart. Since for participant 9 (i.e. trials 9_13 to 9_84) the EMG signal (and hence the resulting FFTs) for the pectoralis major were quite messy but the rectus abdominis looked fine, we chose to use the rectus abdominis signal for this participant.
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the plot", message = FALSE}
@@ -1007,8 +1050,6 @@ heartrateplot <- heartrate %>%
   # scale_color_manual(values = c('#e7298a', '#d95f02')) +
   theme(legend.position="top") +
   theme_cowplot(12) 
-
-
 
 #also create the new EMG column in nomovement, so that rectus is taken from participant 9, otherwise all are pectoralis
 nomovement <- nomovement %>%
@@ -1174,31 +1215,6 @@ coherence_pairs_plot <- coherence_pairs %>%
   scale_colour_brewer(palette = "Set1") +
   theme(legend.position = "bottom", legend.box = "horizontal", legend.justification = "center",
         legend.title = element_blank())
-
-# coherence_realpairs_plot <- coherence_realpairs %>% 
-#   dplyr::filter(frequency <= 3) %>% 
-#   ggplot(aes(x=frequency, group = pptrial, color = participant)) +
-#   geom_path(aes(y=coherence)) +
-#   theme_cowplot(12) +
-#   theme(legend.position = "none") +
-#   facet_wrap(~pptrial) +
-#   ylab("Coherence value") +
-#   xlab("Frequency (in Hz)") +
-#   ylim(0, 1) +
-#   geom_vline(data = heartrateline, aes(xintercept = heartrate, color = participant))
-# 
-# coherence_falsepairs_plot <- coherence_falsepairs %>% 
-#   dplyr::filter(frequency <= 3) %>% 
-#   ggplot(aes(x=frequency, group = pptrial, color = participant)) +
-#   geom_path(aes(y=coherence)) +
-#   theme_cowplot(12) +
-#   theme(legend.position = "none") +
-#   facet_wrap(~pptrial) +
-#   ylab("Coherence value") +
-#   xlab("Frequency (in Hz)") +
-#   ylim(0, 1) +
-#   geom_vline(data = heartrateline, aes(xintercept = heartrate, color = participant))
-
 ```
 
 ```{r coherencepairsplot, echo=FALSE, message = FALSE, fig.cap = "Plot showing the coherence spectra for real (turquoise) and false pairs (red) between detrended amplitude envelope and EMG signal. The vertical line inserted expresses the heartrate extracted from the FFT of the EMG signal in that particular trial.", fig.height = 10}
@@ -1218,13 +1234,17 @@ heartrate_coh_temp <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+  if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_realpairs_temp <- coherence_realpairs %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_realpairs_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_realpairs_temp$frequency[closest_index]
   coherence <- coherence_realpairs_temp$coherence[closest_index]
+  weight_condition <- tr_wd_nomov$weight_condition[tr_wd_nomov$pptrial==ID]
   
-  heartrate_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
+  heartrate_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID, weight_condition)
   heartrate_coh <- rbind(heartrate_coh, heartrate_coh_temp)
 }
 
@@ -1235,21 +1255,148 @@ heartrate_coh_temp_false <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+  if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_falsepairs_temp <- coherence_falsepairs %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_falsepairs_temp$frequency - heartrate_hz))
   closest_frequency <- coherence_falsepairs_temp$frequency[closest_index]
   coherence <- coherence_falsepairs_temp$coherence[closest_index]
+  weight_condition <- tr_wd_nomov$weight_condition[tr_wd_nomov$pptrial==ID]
   
-  heartrate_coh_temp_false <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
+  heartrate_coh_temp_false <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID, weight_condition)
   heartrate_coh_false <- rbind(heartrate_coh_false, heartrate_coh_temp_false)
 }
+
+# make singel dataframe
+heartrate_coherence_real <- heartrate_coh %>% 
+  dplyr::rename(coherence = coherence) %>% 
+  mutate(pair_type = 'real')
+heartrate_coherence_false <- heartrate_coh_false %>%
+  dplyr::rename(coherence = coherence) %>% 
+  mutate(pair_type = 'false')
+heartrate_coherence <- rbind(heartrate_coherence_real, heartrate_coherence_false)
+heartrate_coherence$ppn <- sub("_(.*)", "", heartrate_coherence$ID)
 
 ```
 
 Subsequently, we plotted the coherence values and tested if there was a difference in coherence values for real and false pairs. Fig. \@ref(fig:coherencerealfalsepairsplot) shows the difference in coherence values for false and right pairs.
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the boxplot", message = FALSE}
+
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code modeling coherence in real and false pairs", message = FALSE}
+
+#reorder the coherence pair type levels, so that false becomes the intercept
+heartrate_coherence$pair_type <- factor(heartrate_coherence$pair_type, levels=c('false', 'real'))
+
+#model the data, compare to null model
+model_realfalse_coherence_null <- lmer(coherence ~ 1 + (1 |ppn/ID), data = heartrate_coherence)
+model_realfalse_coherence <- lmer(coherence ~ pair_type + 1 + (1|ppn/ID), data = heartrate_coherence)
+comparison_realfalse_coherence <- anova(model_realfalse_coherence_null, model_realfalse_coherence)
+
+#also save the model output in a data frame
+modelsummary_realfalse_coherence <- summary(model_realfalse_coherence)$coefficients
+colnames(modelsummary_realfalse_coherence) <- c('Estimate', 'SE', 'df', 't-value', 'p-value')
+rownames(modelsummary_realfalse_coherence) <- c('Intercept (false pairs)', 'vs. real pairs')
+
+# Create ANOVA comparison table
+comparison_realfalse_table <- data.frame(
+  Model = c("Null (Intercept only)", "Pair type (false vs. real)"),
+  npar = comparison_realfalse_coherence$npar,
+  AIC = round(comparison_realfalse_coherence$AIC, 2),
+  BIC = round(comparison_realfalse_coherence$BIC, 2),
+  logLik = round(comparison_realfalse_coherence$logLik, 2),
+  deviance = round(comparison_realfalse_coherence$deviance, 2),
+  Chisq = c(NA, round(comparison_realfalse_coherence$Chisq[2], 3)),
+  Df = c(NA, comparison_realfalse_coherence$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison_realfalse_coherence$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison_realfalse_coherence$`Pr(>Chisq)`[2], 3)))
+)
+```
+
+```{r descriptives}
+# Create descriptive statistics table with confidence intervals
+descriptives_realfalse <- heartrate_coherence %>%
+  group_by(pair_type) %>%
+  summarise(
+    n = n(),
+    Mean = mean(coherence, na.rm = TRUE),
+    SD = sd(coherence, na.rm = TRUE),
+    SE = SD / sqrt(n),
+    CI_lower = Mean - qt(0.975, n-1) * SE,
+    CI_upper = Mean + qt(0.975, n-1) * SE,
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    `95% CI` = paste0("[", round(CI_lower, 3), ", ", round(CI_upper, 3), "]")
+  ) %>%
+  select(pair_type, n, Mean, SD, `95% CI`) %>%
+  mutate(
+    Mean = round(Mean, 3),
+    SD = round(SD, 3)
+  )
+
+# Display descriptive statistics table
+knitr::kable(descriptives_realfalse,
+             caption = "Descriptive statistics: Coherence values by pair type.",
+             col.names = c("Pair Type", "N", "Mean", "SD", "95% CI")) %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
+
+With a mixed linear regression we modeled  the variation in coherence (using R-package lme4), with trial as random intercept (for more complex random slope models did not converge). A model with pairing type (real vs false pairs) explained more variance than a base model predicting the overall mean, Change in Chi-Squared (`r printnum(round(comparison_realfalse_coherence[2,1]-comparison_realfalse_coherence[1,1]))`) = `r printnum(comparison_realfalse_coherence$Chisq[2])`, *p* `r printnum(ifelse(comparison_realfalse_coherence[2,8] > .001, paste('=', comparison_realfalse_coherence[2,8]), '< .001'))`.
+
+Model comparison and coefficients are shown in the tables below S\@ref(tab:modelcoherencerealvsfalse). We find that real pairs (as opposed to the false pairs, i.e. the intercept ) had higher coherence values for the heart rate frequency.
+
+```{r modelcoherencerealvsfalse, echo=FALSE}
+# Display comparison table
+knitr::kable(comparison_realfalse_table,
+             caption = "Model comparison: Effect of pair type on coherence values.") %>% 
+  kable_paper("hover", full_width = TRUE)
+
+knitr::kable(format(round(modelsummary_realfalse_coherence, digits = 3)),
+             caption = "Effects of pairing type on coherence values.") %>% 
+  kable_paper("hover", full_width = T)
+```
+
+### Excluding effects of weights
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code modeling coherence in real and false pairs", message = FALSE}
+#reorder the coherence pair type levels, so that false becomes the intercept
+heartrate_coherence_real <- heartrate_coherence %>% 
+  dplyr::filter(pair_type == 'real')
+
+#model the data, compare to null model
+model_real_coherence_null <- lmer(coherence ~ 1 + (1 |ppn/ID), data = heartrate_coherence)
+model_real_coherence_weights <- lmer(coherence ~ weight_condition + 1 + (1|ppn/ID), data = heartrate_coherence)
+comparison <- anova(model_real_coherence_null, model_real_coherence_weights)
+
+# Create ANOVA comparison table
+comparison_table <- data.frame(
+  Model = c("Null (Intercept only)", "Weight condition"),
+  npar = comparison$npar,
+  AIC = round(comparison$AIC, 2),
+  BIC = round(comparison$BIC, 2),
+  logLik = round(comparison$logLik, 2),
+  deviance = round(comparison$deviance, 2),
+  Chisq = c(NA, round(comparison$Chisq[2], 3)),
+  Df = c(NA, comparison$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison$`Pr(>Chisq)`[2], 3)))
+)
+
+```
+
+While we think weight cannot have an effect on the heart-voice coupling as participants were not moving, it is good to check this. Below in table S\@ref(tab:weight_comparison) we report the comparison between a model predicting the overall mean coherence, versus a model predicting coherence as predicted by wearing a 1kg weight or not. Weight was not a reliable predictor.
+
+
+```{r weight_comparison, echo=FALSE}
+# Display table
+knitr::kable(comparison_table,
+             caption = "Model comparison: Effect of weight condition on coherence values in real pairs.") %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
+```{r}
 # per trial 
 heartrate_coh_false <- mutate(heartrate_coh_false, pair_type = "false")
 heartrate_coh <- mutate(heartrate_coh, pair_type = "real")
@@ -1283,95 +1430,10 @@ B <- ggplot(heartrate_coherence_means, aes(x = pair_type, y = coherence_mean, gr
   scale_colour_brewer(palette = "Set1") +
   theme_cowplot() +
   theme(legend.position = "none")
+
+# cowplot A, B
+plot_grid(A, B, labels = c('A', 'B'), ncol = 2)
 ```
-
-```{r coherencerealfalsepairsplot, echo=FALSE, message = FALSE, fig.cap = "Box plot showing the coherence values for false (left) and real (pairs) pairs per trial (left) and participant (right).", fig.height = 3}
-plot_grid(A, B, labels = c('A', 'B'), ncol = 2) 
-```
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code modeling coherence in real and false pairs", message = FALSE}
-#reorder the coherence pair type levels, so that false becomes the intercept
-heartrate_coherence$pair_type <- factor(heartrate_coherence$pair_type, levels=c('false', 'real'))
-
-#model the data, compare to null model
-model_realfalse_coherence_null <- lmer(coherence ~ 1 + (1 |ID), data = heartrate_coherence)
-model_realfalse_coherence <- lmer(coherence ~ pair_type + 1 + (1|ID), data = heartrate_coherence)
-comparison_realfalse_coherence <- anova(model_realfalse_coherence_null, model_realfalse_coherence)
-
-#also save the model output in a data frame
-modelsummary_realfalse_coherence <- summary(model_realfalse_coherence)$coefficients
-colnames(modelsummary_realfalse_coherence) <- c('Estimate', 'SE', 'df', 't-value', 'p-value')
-rownames(modelsummary_realfalse_coherence) <- c('Intercept (false pairs)', 'vs. real pairs')
-
-# Create ANOVA comparison table
-comparison_realfalse_table <- data.frame(
-  Model = c("Null (Intercept only)", "Pair type (false vs. real)"),
-  npar = comparison_realfalse_coherence$npar,
-  AIC = round(comparison_realfalse_coherence$AIC, 2),
-  BIC = round(comparison_realfalse_coherence$BIC, 2),
-  logLik = round(comparison_realfalse_coherence$logLik, 2),
-  deviance = round(comparison_realfalse_coherence$deviance, 2),
-  Chisq = c(NA, round(comparison_realfalse_coherence$Chisq[2], 3)),
-  Df = c(NA, comparison_realfalse_coherence$Df[2]),
-  `Pr(>Chisq)` = c(NA, ifelse(comparison_realfalse_coherence$`Pr(>Chisq)`[2] < .001, "< .001", 
-                               round(comparison_realfalse_coherence$`Pr(>Chisq)`[2], 3)))
-)
-```
-
-
-
-With a mixed linear regression we modeled  the variation in coherence (using R-package lme4), with trial as random intercept (for more complex random slope models did not converge). A model with pairing type (real vs false pairs) explained more variance than a base model predicting the overall mean, Change in Chi-Squared (`r printnum(round(comparison_realfalse_coherence[2,1]-comparison_realfalse_coherence[1,1]))`) = `r printnum(comparison_realfalse_coherence$Chisq[2])`, *p* `r printnum(ifelse(comparison_realfalse_coherence[2,8] > .001, paste('=', comparison_realfalse_coherence[2,8]), '< .001'))`.
-
-Model comparison and coefficients are shown in the tables below S\@ref(tab:modelcoherencerealvsfalse). We find that real pairs (as opposed to the false pairs, i.e. the intercept ) had higher coherence values for the heart rate frequency.
-
-```{r modelcoherencerealvsfalse, echo=FALSE}
-# Display comparison table
-knitr::kable(comparison_realfalse_table,
-             caption = "Model comparison: Effect of pair type on coherence values.") %>% 
-  kable_paper("hover", full_width = TRUE)
-
-knitr::kable(format(round(modelsummary_realfalse_coherence, digits = 3)),
-             caption = "Effects of pairing type on coherence values.") %>% 
-  kable_paper("hover", full_width = T)
-```
-
-### Excluding effects of weights
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code modeling coherence in real and false pairs", message = FALSE}
-#reorder the coherence pair type levels, so that false becomes the intercept
-heartrate_coherence_real <- heartrate_coherence %>% 
-  dplyr::filter(pair_type == 'real')
-
-#model the data, compare to null model
-model_real_coherence_null <- lmer(coherence ~ 1 + (1 |ID), data = heartrate_coherence)
-model_real_coherence_weights <- lmer(coherence ~ weight_condition + 1 + (1|ID), data = heartrate_coherence)
-comparison <- anova(model_real_coherence_null, model_real_coherence_weights)
-
-# Create ANOVA comparison table
-comparison_table <- data.frame(
-  Model = c("Null (Intercept only)", "Weight condition"),
-  npar = comparison$npar,
-  AIC = round(comparison$AIC, 2),
-  BIC = round(comparison$BIC, 2),
-  logLik = round(comparison$logLik, 2),
-  deviance = round(comparison$deviance, 2),
-  Chisq = c(NA, round(comparison$Chisq[2], 3)),
-  Df = c(NA, comparison$Df[2]),
-  `Pr(>Chisq)` = c(NA, ifelse(comparison$`Pr(>Chisq)`[2] < .001, "< .001", 
-                               round(comparison$`Pr(>Chisq)`[2], 3)))
-)
-
-```
-
-While we think weight cannot have an effect on the heart-voice coupling as participants were not moving, it is good to check this. Below in table S\@ref(tab:weight_comparison) we report the comparison between a model predicting the overall mean coherence, versus a model predicting coherence as predicted by wearing a 1kg weight or not. Weight was not a reliable predictor.
-
-
-```{r weight_comparison, echo=FALSE}
-# Display table
-knitr::kable(comparison_table,
-             caption = "Model comparison: Effect of weight condition on coherence values in real pairs.") %>% 
-  kable_paper("hover", full_width = TRUE)
-```
-
 
 ## Hypothesis 2: The heart-voice coupling is more pronounced at the beginning of the vocalization, when the lungs are full
 
@@ -1491,6 +1553,8 @@ coherence_halves_plot_false <- halves_coherence %>%
   ylim(0, 1) +
   geom_vline(data = heartrateline, aes(xintercept = heartrate)) +
   scale_colour_brewer(palette = "Set1")
+
+
 ``` 
 
 
@@ -1500,6 +1564,72 @@ plot_grid(coherence_halves_plot_real)
 
 ```{r coherencehalvesplotfalse, echo=FALSE, message = FALSE, fig.cap = "Coherence spectra for first (red) and second (blue) half of the time in false pairs", fig.height = 10}
 plot_grid(coherence_halves_plot_false)
+```
+
+
+
+```{r coherencerealfalsepairsplot, warning = FALSE, echo = TRUE, code_folding = "Show code creating the plot", message = FALSE}
+# Original spectral plots
+coherence_halves_plot_real <- halves_coherence %>% 
+  dplyr::filter(frequency <= 3) %>%
+  dplyr::filter(pair_type == "real") %>% 
+  ggplot(aes(x=frequency)) +
+  geom_path(aes(y=coherence, group = pptrialhalftype, color = half)) +
+  theme_cowplot(12) +
+  theme(legend.position = "bottom") +
+  facet_wrap(~pptrial) +
+  ylim(0, 1) +
+  geom_vline(data = heartrateline, aes(xintercept = heartrate)) +
+  scale_colour_brewer(palette = "Set1")
+  
+coherence_halves_plot_false <- halves_coherence %>% 
+  dplyr::filter(frequency <= 3) %>%
+  dplyr::filter(pair_type == "false") %>% 
+  ggplot(aes(x=frequency)) +
+  geom_path(aes(y=coherence, group = pptrialhalftype, color = half)) +
+  theme_cowplot(12) +
+  theme(legend.position = "bottom") +
+  facet_wrap(~pptrial) +
+  ylim(0, 1) +
+  geom_vline(data = heartrateline, aes(xintercept = heartrate)) +
+  scale_colour_brewer(palette = "Set1")
+
+firstsecondhalf_coherence <- rbind(coherence_firsthalf, coherence_secondhalf)
+
+# Add participant column to firstsecondhalf_coherence if not present
+firstsecondhalf_coherence$ID <- firstsecondhalf_coherence$pptrial
+firstsecondhalf_coherence$participant <-  sub("_(.*)", "", firstsecondhalf_coherence$ID)
+
+# Per trial boxplot (original)
+A_halves <- ggplot(firstsecondhalf_coherence, aes(x = half, y = coherence, color = half)) +
+  geom_boxplot(size = 1) +
+  geom_quasirandom() +
+  ylab('Coherence value') +
+  xlab('Half') +
+  scale_colour_brewer(palette = "Set1") +
+  theme_cowplot() +
+  facet_wrap(~pair_type) +
+  theme(legend.position = "none")
+
+# Per participant means with connected lines
+firstsecondhalf_coherence_means <- firstsecondhalf_coherence %>%
+  group_by(participant, half, pair_type) %>%
+  summarise(coherence_mean = mean(coherence, na.rm = TRUE), .groups = 'drop')
+
+B_halves <- ggplot(firstsecondhalf_coherence_means, aes(x = half, y = coherence_mean, group = participant)) +
+  geom_line(color = "gray60", alpha = 0.6) +
+  geom_point(aes(color = half), size = 3, alpha = 0.8) +
+  ylab('Mean coherence value') +
+  xlab('Half') +
+  scale_colour_brewer(palette = "Set1") +
+  theme_cowplot() +
+  facet_wrap(~pair_type) +
+  theme(legend.position = "none")
+```
+
+```{r, coherencerealfalsepairsperparticipantplot, echo=FALSE, message = FALSE, fig.cap = "Spectral plots showing coherence values for real pairs (left) and false pairs (right) per trial, separated by first and second half of the trial (colored lines). Box plot showing the coherence values for first and second half per trial (left) and participant (right), separated by pair type (real vs false).", fig.height = 10}
+# Combined plot
+plot_grid(A_halves, B_halves, labels = c('A', 'B'), ncol = 2)
 ```
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code comparing coherence between the two halves", message = FALSE}
@@ -1514,6 +1644,10 @@ firsthalf_real_coh <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+  # check if present
+  if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_firsthalf_real_temp <- coherence_firsthalf_real %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_firsthalf_real_temp$frequency - heartrate_hz))
@@ -1531,6 +1665,9 @@ firsthalf_false_coh <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+    if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_firsthalf_false_temp <- coherence_firsthalf_false %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_firsthalf_false_temp$frequency - heartrate_hz))
@@ -1551,6 +1688,9 @@ secondhalf_real_coh <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+    if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_secondhalf_real_temp <- coherence_secondhalf_real %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_secondhalf_real_temp$frequency - heartrate_hz))
@@ -1568,6 +1708,9 @@ secondhalf_false_coh <- data.frame()
 for(ID in tr_wd_nomov$pptrial)
 {
   heartrate_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial==ID]
+    if (is.na(heartrate_hz)) {
+    next  # Skip to the next iteration if heartrate_hz is NA
+  }
   coherence_secondhalf_false_temp <- coherence_secondhalf_false %>% 
     dplyr::filter(pptrial == ID)
   closest_index <- which.min(abs(coherence_secondhalf_false_temp$frequency - heartrate_hz))
@@ -1604,6 +1747,156 @@ coherence_firstsecondhalf_plot <- ggplot(firstsecondhalf_coherence, aes(x = half
 
 ```{r coherencefirstsecondhalfplot, echo=FALSE, message = FALSE, fig.cap = "Box plot showing the coherence values for first and second half pairs. The plot is also facetted by real and false pairs.", fig.height = 3}
 plot_grid(coherence_firstsecondhalf_plot)
+```
+
+
+
+# Alternative testing of hypothesis 2
+```{r cross-wavelet, echo = TRUE, code_folding = "Show code creating cross-wavelet", message = FALSE}
+library(WaveletComp)
+
+overwrite = TRUE
+
+# Function to compute wavelet coherence and extract max coherence in heart rate band
+compute_wavelet_coherence <- function(env_signal, emg_signal, sampling_rate = 2500, 
+                                     hr_band_hz = c(0.8, 2.5)) { # bpm = 48 (0.8Hz) to 150 (2.5Hz)
+  
+  # Create time vector
+  time_vec <- seq(0, length(env_signal) - 1) / sampling_rate
+  
+  # Compute wavelet coherence
+  wc <- analyze.coherency(
+    data.frame(time = time_vec, env = env_signal, emg = emg_signal),
+    my.pair = c("env", "emg"),
+    loess.span = 0,
+    dt = 1/sampling_rate,
+    dj = 1/20,  # frequency resolution
+    lowerPeriod = 1/hr_band_hz[2],  # corresponds to upper freq bound
+    upperPeriod = 1/hr_band_hz[1],  # corresponds to lower freq bound
+    make.pval = TRUE,
+    n.sim = 10
+  )
+  
+  # Extract coherence matrix (time x frequency)
+  coherence_matrix <- wc$Coherence
+  time_series <- wc$axis.1
+  period_series <- wc$Period
+  freq_series <- 1 / period_series
+  
+  # Find heart rate frequency band indices
+  hr_band_idx <- which(freq_series >= hr_band_hz[1] & freq_series <= hr_band_hz[2])
+  
+  # Extract max coherence in HR band at each time point
+  max_coh_time <- apply(coherence_matrix[hr_band_idx, ], 2, max, na.rm = TRUE)
+  
+  # Also get mean coherence in HR band
+  mean_coh_time <- apply(coherence_matrix[hr_band_idx, ], 2, mean, na.rm = TRUE)
+  
+  return(list(
+    time = time_series,
+    max_coherence = max_coh_time,
+    mean_coherence = mean_coh_time,
+    full_coherence = coherence_matrix,
+    frequencies = freq_series
+  ))
+}
+
+if(!file.exists(paste0(procdtot, 'wavelet_results_real.csv')) | 
+   !file.exists(paste0(procdtot, 'wavelet_results_false.csv')) | 
+   overwrite == TRUE) {
+  
+  # Apply to real pairs over time
+  wavelet_results_real <- data.frame()
+  
+  for(ID in unique(realpairs$pptrial)) {
+    trial_data <- realpairs[realpairs$pptrial == ID, ]
+    if (nrow(trial_data) == 0) {next}
+    
+    hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == ID]
+    hr_band <- c(hr_hz * 0.8, hr_hz * 1.2)
+    
+    wc_result <- compute_wavelet_coherence(
+      trial_data$env_z_detrend,
+      trial_data$EMG,
+      hr_band_hz = hr_band
+    )
+    
+    temp_df <- data.frame(
+      pptrial = ID,
+      time = wc_result$time,
+      max_coherence = wc_result$max_coherence,
+      mean_coherence = wc_result$mean_coherence
+    )
+    
+    wavelet_results_real <- rbind(wavelet_results_real, temp_df)
+  }
+  
+  write.csv(wavelet_results_real, paste0(procdtot, 'wavelet_results_real.csv'), row.names = FALSE)
+  
+  # Apply to false pairs
+  wavelet_results_false <- data.frame()
+  
+  for(ID in unique(falsepairs$pptrial)) {
+    trial_data <- falsepairs[falsepairs$pptrial == ID, ]
+    if (nrow(trial_data) == 0) {next}
+    
+    hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == ID]
+    hr_band <- c(hr_hz * 0.8, hr_hz * 1.2)
+    
+    wc_result <- compute_wavelet_coherence(
+      trial_data$env_z_detrend,
+      trial_data$EMG,
+      hr_band_hz = hr_band
+    )
+    
+    temp_df <- data.frame(
+      pptrial = ID,
+      time = wc_result$time,
+      max_coherence = wc_result$max_coherence,
+      mean_coherence = wc_result$mean_coherence
+    )
+    
+    wavelet_results_false <- rbind(wavelet_results_false, temp_df)
+  }
+  
+  write.csv(wavelet_results_false, paste0(procdtot, 'wavelet_results_false.csv'), row.names = FALSE)
+  
+} else {
+  wavelet_results_real <- read.csv(paste0(procdtot, 'wavelet_results_real.csv'))
+  wavelet_results_false <- read.csv(paste0(procdtot, 'wavelet_results_false.csv'))
+}
+
+# Add pair type labels
+wavelet_results_real$pair_type <- "real"
+wavelet_results_false$pair_type <- "false"
+wavelet_results_all <- rbind(wavelet_results_real, wavelet_results_false)
+
+# Create time bins for comparison (e.g., early vs late)
+wavelet_results_all <- wavelet_results_all %>%
+  mutate(
+    time_bin = cut(time, breaks = c(0, 2.5, 5), labels = c("early", "late"))
+  )
+
+# Plot coherence over time
+wavelet_time_plot <- ggplot(wavelet_results_all, aes(x = time, y = max_coherence, color = pair_type)) +
+  geom_smooth(method = "loess", span = 0.3) +
+  facet_wrap(~pptrial) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Time (s)", y = "Max coherence in HR band") +
+  theme_cowplot() +
+  theme(legend.position = "bottom")
+
+# Statistical comparison of early vs late
+wavelet_summary <- wavelet_results_all %>%
+  filter(!is.na(time_bin)) %>%
+  group_by(pptrial, pair_type, time_bin) %>%
+  summarise(mean_max_coh = mean(max_coherence, na.rm = TRUE), .groups = 'drop')
+
+# Model
+wavelet_summary$ID <- wavelet_summary$pptrial
+wavelet_summary$pp <- sub("_(.*)", "", wavelet_summary$ID)
+model_wavelet <- lmer(mean_max_coh ~ pair_type * time_bin + (1|pp/ID), data = wavelet_summary)
+summary(model_wavelet)
 ```
 
 # Exploratory analyses
