@@ -1,0 +1,13 @@
+[
+  {
+    "objectID": "heartrate.html",
+    "href": "heartrate.html",
+    "title": "Dissociating mechanisms of heart-voice coupling",
+    "section": "",
+    "text": "This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of “Mechanisms of heart-voice coupling: an ode to Orlikoff”. For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking “Show code”. The full dataset is available at the Donders Repository (redacted for review).",
+    "crumbs": [
+      "Extended Results",
+      "Effects of heart rate on vocalization"
+    ]
+  }
+]
