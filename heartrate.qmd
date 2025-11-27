@@ -693,9 +693,9 @@ library(gridExtra)
 
 # Select example trials
 ex5 <- subset(nomovement, nomovement$tr %in% unique(nomovement$tr[nomovement$pp==8])[1:5])
+ex5$EMG <- scale(ex5$pectoralis_major)
 
 # Normalize
-ex5$EMG <- scale(ex5$EMG)
 ex5$time_ms <- round(ex5$time_s_c*1000)
 
 # Function to create time series plot for one trial
