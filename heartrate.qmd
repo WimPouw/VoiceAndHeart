@@ -4,6 +4,8 @@ description: |
   Extended results: Heart-voice coupling
 author:
 - name: Marijn Hafkamp
+  email: marijn.hafkamp@donders.ru.nl
+  corresponding: yes
   url: https://orcid.org/0000-0002-3719-7586
   affiliation: Radboud University Nijmegen, Donders Institute for Brain, Cognition, and Behaviour
   orcid_id: 0000-0002-3719-7586
@@ -32,11 +34,9 @@ This is a fully computationally reproducible manuscript written in Rmarkdown. It
 
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
-#ensures random processes give consistent results
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
-knitr::opts_knit$set(root.dir =normalizePath("."))
-#basefolder <- as.character(normalizePath(".")) #make sure to set the wd to source file location
-basefolder <- dirname(rstudioapi::getSourceEditorContext()$path)
+knitr::opts_knit$set(root.dir = normalizePath("."))
+basefolder <- getwd()  # Use current working directory
 ```
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE, code_folding = "Show code setting up the packages"}
@@ -466,50 +466,64 @@ Fig.\@ref(fig:combinedtimeseriesnomov) shows the vocal amplitude and two EMG sig
 ex3 <- triallist %>% 
   dplyr::filter(vocal_condition == "vocalize") %>% 
   dplyr::filter(movement_condition == "no_movement") %>% 
-  dplyr::filter(ppn == 8) #arbitrary but we also chose ppn 8 in the example above
+  dplyr::filter(ppn == 8)
 ex3 <- ex3[2, ]
-#ex2$trialindex
+
 if (file.exists(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '_heartrate_aligned.csv')))
 {
-exts3 <- read.csv(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '_heartrate_aligned.csv'))
-#exts2 <- dplyr::rename(exts2, rectus_abdominis = rectus_abdominus)
-  exts3 <- subset(exts3, time_s_c > 0 & time_s_c <7)
-  exts3 <- exts3[seq(1, nrow(exts3), by = 5), ]    #downsample by a 5th
+  exts3 <- read.csv(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '_heartrate_aligned.csv'))
+  exts3 <- subset(exts3, time_s_c > 1 & time_s_c < 6)
+  exts3 <- exts3[seq(1, nrow(exts3), by = 5), ]
   exts3$time_ms <- round(exts3$time_s_c*1000)
-  #fp <- pracma::findpeaks(exts3$speed)
-  #fp <- fp[which.max(fp[,1]),]
-  #startmov <- exts3$time_ms[fp[3]]
-  #endmov   <- exts3$time_ms[fp[4]]
-  #ps       <- exts3$time_ms[fp[2]]
-#apply movement rule to centralize trials
-#here all processing steps are performed, and data aligned
-
-
-examplenomov <- ggplot(exts3, aes(x=time_ms)) +
-  geom_path(aes(y=scale(pectoralis_major), color = 'pectoralis major')) +
-  geom_path(aes(y=scale(rectus_abdominis), color = 'rectus abdominis')) +
-  geom_path(aes(y=scale(env)), color="black") +
-  geom_smooth(aes(y=scale(env)), method='lm', linetype = 'dashed',color = 'black') +
-  scale_color_manual(values = colors_mus) +
-  scale_y_continuous(
-    name = "sEMG",
-    sec.axis = sec_axis(~., name="vocal amplitude (normalized)")
-  ) +
-  theme_cowplot(12) +
-  theme(legend.position = c(0.8, 1)) +
-  geom_hline(yintercept= 0) +
-  xlim(1000, 5000) +
-  xlab('time (ms)')
-
+  
+  # Compute detrended and scaled envelope
+  env_detrended <- pracma::detrend(exts3$env_z, tt = 'linear')
+  exts3$env_z_detrend_scaled <- scale(env_detrended)
+  
+  # PLOT 1: Time series - NON-DETRENDED
+  examplenomov <- ggplot(exts3, aes(x=time_ms)) +
+    geom_path(aes(y=scale(pectoralis_major), color = 'pectoralis major')) +
+    geom_path(aes(y=scale(env_z)), color="black") +
+    geom_smooth(aes(y=scale(env_z)), method='lm', linetype = 'dashed',color = 'black') +
+    scale_color_manual(values = colors_mus) +
+    scale_y_continuous(
+      name = "EMG",
+      sec.axis = sec_axis(~., name="Vocal amplitude")
+    ) +
+    theme_cowplot(12) +
+    theme(legend.position = "none") +
+    geom_hline(yintercept= 0) +
+    xlab('Time (ms)') +
+    ggtitle('Non-detrended')
+  
+  # PLOT 2: Time series - DETRENDED AND Z-SCALED
+  examplenomov_detrend <- ggplot(exts3, aes(x=time_ms)) +
+    geom_path(aes(y=scale(pectoralis_major), color = 'pectoralis major')) +
+    geom_path(aes(y=env_z_detrend_scaled), color="black") +
+    geom_smooth(aes(y=env_z_detrend_scaled), method='lm', linetype = 'dashed',color = 'black') +
+    scale_color_manual(values = colors_mus) +
+    scale_y_continuous(
+      name = "EMG",
+      sec.axis = sec_axis(~., name="Vocal amplitude (detrended)")
+    ) +
+    theme_cowplot(12) +
+    theme(legend.position = "none") +
+    geom_hline(yintercept= 0) +
+    xlab('Time (ms)') +
+    ggtitle('Detrended and z-scaled')
+  
+  # Combine and print
+  combined_plot <- plot_grid(examplenomov, examplenomov_detrend, 
+                             ncol = 1, align = "v")
 }
+
 ```
 
 ```{r combinedtimeseriesnomov, echo=FALSE, message = FALSE, fig.cap = "Example trial showing no movement and the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
-if(exists("examplenomov"))
-{
-plot_grid(examplenomov)
-}
+
+ combined_plot
 ```
+
 
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
@@ -688,7 +702,7 @@ filteredEMGnomovrectus <- ggplot(emgdnomov[seq(1, nrow(emgdnomov),by=5),], aes(x
   theme(legend.position = "none")
 ```
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE, warning=FALSE}
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot",results="hide", fig.show="hide", message = FALSE, warning=FALSE}
 library(gridExtra)
 
 # Select example trials
@@ -1627,11 +1641,6 @@ B_halves <- ggplot(firstsecondhalf_coherence_means, aes(x = half, y = coherence_
   theme(legend.position = "none")
 ```
 
-```{r, coherencerealfalsepairsperparticipantplot, echo=FALSE, message = FALSE, fig.cap = "Spectral plots showing coherence values for real pairs (left) and false pairs (right) per trial, separated by first and second half of the trial (colored lines). Box plot showing the coherence values for first and second half per trial (left) and participant (right), separated by pair type (real vs false).", fig.height = 10}
-# Combined plot
-plot_grid(A_halves, B_halves, labels = c('A', 'B'), ncol = 2)
-```
-
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code comparing coherence between the two halves", message = FALSE}
 #compare coherence between the 2 halves; and for real vs false pairs
 #get coherence value at frequency of heart rate
@@ -1720,12 +1729,8 @@ for(ID in tr_wd_nomov$pptrial)
   secondhalf_false_coh_temp <- cbind.data.frame(heartrate_hz, closest_index, closest_frequency, coherence, ID)
   secondhalf_false_coh <- rbind(secondhalf_false_coh, secondhalf_false_coh_temp)
 }
-```
 
-Now that we have the coherence values, we can plot (see Fig. \@ref(fig:coherencefirstsecondhalfplot)) and model the potential difference.
-
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the boxplot", message = FALSE}
-#first we merge the dataframes for plotting & modeling
+# First we merge the dataframes for plotting & modeling
 firsthalf_real_coh <- mutate(firsthalf_real_coh, half = "first", pair_type = "real")
 firsthalf_false_coh <- mutate(firsthalf_false_coh, half = "first", pair_type = "false")
 secondhalf_real_coh <- mutate(secondhalf_real_coh, half = "second", pair_type = "real")
@@ -1736,26 +1741,181 @@ firstsecondhalf_coherence <- rbind(firsthalf_real_coh,
                                    secondhalf_real_coh,
                                    secondhalf_false_coh)
 
-coherence_firstsecondhalf_plot <- ggplot(firstsecondhalf_coherence, aes(x = half, y = coherence, color = half)) +
+# Add participant column
+firstsecondhalf_coherence$participant <- sub("_(.*)", "", firstsecondhalf_coherence$ID)
+
+# Reorder factor levels
+firstsecondhalf_coherence$half <- factor(firstsecondhalf_coherence$half, levels = c('first', 'second'))
+firstsecondhalf_coherence$pair_type <- factor(firstsecondhalf_coherence$pair_type, levels = c('false', 'real'))
+```
+
+Now that we have the coherence values, we can plot (see Fig. \@ref(fig:coherencefirstsecondhalfplot)) and model the potential difference.
+
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the boxplot", message = FALSE}
+# Define bright contrasting colors
+color_first <- "#FF6B35"   # Bright orange
+color_second <- "#004E89"  # Deep blue
+color_real <- "#E63946"    # Bright red
+color_false <- "#06FFA5"   # Bright cyan
+
+# Original spectral plots
+coherence_halves_plot_real <- halves_coherence %>% 
+  dplyr::filter(frequency <= 3) %>%
+  dplyr::filter(pair_type == "real") %>% 
+  ggplot(aes(x=frequency)) +
+  geom_path(aes(y=coherence, group = pptrialhalftype, color = half)) +
+  theme_cowplot(12) +
+  theme(legend.position = "bottom") +
+  facet_wrap(~pptrial) +
+  ylim(0, 1) +
+  geom_vline(data = heartrateline, aes(xintercept = heartrate)) +
+  scale_colour_manual(values = c("first" = color_first, "second" = color_second))
+  
+coherence_halves_plot_false <- halves_coherence %>% 
+  dplyr::filter(frequency <= 3) %>%
+  dplyr::filter(pair_type == "false") %>% 
+  ggplot(aes(x=frequency)) +
+  geom_path(aes(y=coherence, group = pptrialhalftype, color = half)) +
+  theme_cowplot(12) +
+  theme(legend.position = "bottom") +
+  facet_wrap(~pptrial) +
+  ylim(0, 1) +
+  geom_vline(data = heartrateline, aes(xintercept = heartrate)) +
+  scale_colour_manual(values = c("first" = color_first, "second" = color_second))
+
+# Add participant column to firstsecondhalf_coherence if not present
+firstsecondhalf_coherence$participant <- sub("_(.*)", "", firstsecondhalf_coherence$ID)
+
+# Per trial boxplot (original)
+A_halves <- ggplot(firstsecondhalf_coherence, aes(x = half, y = coherence, color = half)) +
   geom_boxplot(size = 1) +
   geom_quasirandom() +
   ylab('Coherence value') +
-  scale_colour_brewer(palette = "Set1") +
+  xlab('Half') +
+  scale_colour_manual(values = c("first" = color_first, "second" = color_second)) +
   theme_cowplot() +
-  facet_wrap(~pair_type)
+  facet_wrap(~pair_type) +
+  theme(legend.position = "none")
+
+# Per participant means with connected lines
+firstsecondhalf_coherence_means <- firstsecondhalf_coherence %>%
+  group_by(participant, half, pair_type) %>%
+  summarise(coherence_mean = mean(coherence, na.rm = TRUE), .groups = 'drop')
+
+B_halves <- ggplot(firstsecondhalf_coherence_means, aes(x = half, y = coherence_mean, group = participant)) +
+  geom_line(color = "gray60", alpha = 0.6) +
+  geom_point(aes(color = half), size = 3, alpha = 0.8) +
+  ylab('Mean coherence value') +
+  xlab('Half') +
+  scale_colour_manual(values = c("first" = color_first, "second" = color_second)) +
+  theme_cowplot() +
+  facet_wrap(~pair_type) +
+  theme(legend.position = "none")
+
 ```
 
 ```{r coherencefirstsecondhalfplot, echo=FALSE, message = FALSE, fig.cap = "Box plot showing the coherence values for first and second half pairs. The plot is also facetted by real and false pairs.", fig.height = 3}
-plot_grid(coherence_firstsecondhalf_plot)
+# Combined plot
+plot_grid(A_halves, B_halves, labels = c('A', 'B'), ncol = 2)
 ```
 
 
+```{r descriptives_halves, warning = FALSE, echo = TRUE, code_folding = "Show code creating descriptive statistics for halves", message = FALSE}
+# Create descriptive statistics table
+descriptives_halves <- firstsecondhalf_coherence %>%
+  group_by(half, pair_type) %>%
+  summarise(
+    n = n(),
+    Mean = mean(coherence, na.rm = TRUE),
+    SD = sd(coherence, na.rm = TRUE),
+    SE = SD / sqrt(n),
+    CI_lower = Mean - qt(0.975, n-1) * SE,
+    CI_upper = Mean + qt(0.975, n-1) * SE,
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    `95% CI` = paste0("[", round(CI_lower, 3), ", ", round(CI_upper, 3), "]")
+  ) %>%
+  select(pair_type, half, n, Mean, SD, `95% CI`) %>%
+  mutate(
+    Mean = round(Mean, 3),
+    SD = round(SD, 3)
+  )
+
+knitr::kable(descriptives_halves,
+             caption = "Descriptive statistics: Coherence values by half and pair type.",
+             col.names = c("Pair Type", "Half", "N", "Mean", "SD", "95% CI")) %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
+```{r model_halves_coherence}
+# Model the data - test interaction
+model_halves_null <- lmer(coherence ~ 1 + (1|participant/ID), data = firstsecondhalf_coherence)
+model_halves_main <- lmer(coherence ~ half + pair_type + (1|participant/ID), data = firstsecondhalf_coherence)
+model_halves_interaction <- lmer(coherence ~ half * pair_type + (1|participant/ID), data = firstsecondhalf_coherence)
+
+# Compare models
+comparison_halves_main <- anova(model_halves_null, model_halves_main)
+comparison_halves_interaction <- anova(model_halves_main, model_halves_interaction)
+
+# Create comparison tables
+comparison_halves_main_table <- data.frame(
+  Model = c("Null (Intercept only)", "Main effects (half + pair type)"),
+  npar = comparison_halves_main$npar,
+  AIC = round(comparison_halves_main$AIC, 2),
+  BIC = round(comparison_halves_main$BIC, 2),
+  logLik = round(comparison_halves_main$logLik, 2),
+  deviance = round(comparison_halves_main$deviance, 2),
+  Chisq = c(NA, round(comparison_halves_main$Chisq[2], 3)),
+  Df = c(NA, comparison_halves_main$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison_halves_main$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison_halves_main$`Pr(>Chisq)`[2], 3)))
+)
+
+comparison_halves_interaction_table <- data.frame(
+  Model = c("Main effects only", "Main effects + interaction"),
+  npar = comparison_halves_interaction$npar,
+  AIC = round(comparison_halves_interaction$AIC, 2),
+  BIC = round(comparison_halves_interaction$BIC, 2),
+  logLik = round(comparison_halves_interaction$logLik, 2),
+  deviance = round(comparison_halves_interaction$deviance, 2),
+  Chisq = c(NA, round(comparison_halves_interaction$Chisq[2], 3)),
+  Df = c(NA, comparison_halves_interaction$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison_halves_interaction$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison_halves_interaction$`Pr(>Chisq)`[2], 3)))
+)
+
+# Model coefficients
+modelsummary_halves <- summary(model_halves_interaction)$coefficients
+colnames(modelsummary_halves) <- c('Estimate', 'SE', 'df', 't-value', 'p-value')
+rownames(modelsummary_halves) <- c('Intercept (first half, false pairs)', 
+                                    'Second half',
+                                    'Real pairs',
+                                    'Second half × Real pairs')
+
+# Display tables
+knitr::kable(comparison_halves_main_table,
+             caption = "Model comparison: Main effects of half and pair type on coherence.") %>% 
+  kable_paper("hover", full_width = TRUE)
+
+knitr::kable(comparison_halves_interaction_table,
+             caption = "Model comparison: Interaction effect of half × pair type on coherence.") %>% 
+  kable_paper("hover", full_width = TRUE)
+
+knitr::kable(format(round(modelsummary_halves, digits = 3)),
+             caption = "Model coefficients: Effects of half and pair type on coherence values.") %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
 
 # Alternative testing of hypothesis 2
+
+By cutting the trials in two early and later portions as to then compare coherence values, we may have lost some temporal resolution. We therefore also applied a wavelet coherence analysis to track coherence values over time, and then extract the maximum coherence in the heart rate frequency band (48-150bpm) over time. The conclusion remains the same. We do not observe a clear indication of respiration phase to change the heart-voice coupling.
+
 ```{r cross-wavelet, echo = TRUE, code_folding = "Show code creating cross-wavelet", message = FALSE}
 library(WaveletComp)
 
-overwrite = TRUE
+overwrite = FALSE
 
 # Function to compute wavelet coherence and extract max coherence in heart rate band
 compute_wavelet_coherence <- function(env_signal, emg_signal, sampling_rate = 2500, 
@@ -1814,7 +1974,7 @@ if(!file.exists(paste0(procdtot, 'wavelet_results_real.csv')) |
     
     hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == ID]
     hr_band <- c(hr_hz * 0.8, hr_hz * 1.2)
-    
+    if (is.na(hr_hz)) {next}
     wc_result <- compute_wavelet_coherence(
       trial_data$env_z_detrend,
       trial_data$EMG,
@@ -1842,7 +2002,7 @@ if(!file.exists(paste0(procdtot, 'wavelet_results_real.csv')) |
     
     hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == ID]
     hr_band <- c(hr_hz * 0.8, hr_hz * 1.2)
-    
+    if (is.na(hr_hz)) {next}
     wc_result <- compute_wavelet_coherence(
       trial_data$env_z_detrend,
       trial_data$EMG,
@@ -1871,33 +2031,121 @@ wavelet_results_real$pair_type <- "real"
 wavelet_results_false$pair_type <- "false"
 wavelet_results_all <- rbind(wavelet_results_real, wavelet_results_false)
 
-# Create time bins for comparison (e.g., early vs late)
+# Create time bins for comparison early versus late, for second half
 wavelet_results_all <- wavelet_results_all %>%
-  mutate(
-    time_bin = cut(time, breaks = c(0, 2.5, 5), labels = c("early", "late"))
-  )
+  mutate(time_bin = ifelse(time < median(time), "early", "late"))
+
+# Statistical comparison of early vs late
+wavelet_summary <- wavelet_results_all %>%
+  group_by(pptrial, pair_type, time_bin) %>%
+  summarise(mean_max_coh = mean(max_coherence, na.rm = TRUE), .groups = 'drop')
 
 # Plot coherence over time
-wavelet_time_plot <- ggplot(wavelet_results_all, aes(x = time, y = max_coherence, color = pair_type)) +
-  geom_smooth(method = "loess", span = 0.3) +
-  facet_wrap(~pptrial) +
+wavelet_time_plot <- ggplot(wavelet_results_all, aes(x = time_bin, y = max_coherence, color = pair_type)) +
+  geom_boxplot() +
   scale_color_brewer(palette = "Set1") +
   labs(x = "Time (s)", y = "Max coherence in HR band") +
   theme_cowplot() +
   theme(legend.position = "bottom")
 
-# Statistical comparison of early vs late
-wavelet_summary <- wavelet_results_all %>%
-  filter(!is.na(time_bin)) %>%
-  group_by(pptrial, pair_type, time_bin) %>%
-  summarise(mean_max_coh = mean(max_coherence, na.rm = TRUE), .groups = 'drop')
-
 # Model
 wavelet_summary$ID <- wavelet_summary$pptrial
 wavelet_summary$pp <- sub("_(.*)", "", wavelet_summary$ID)
-model_wavelet <- lmer(mean_max_coh ~ pair_type * time_bin + (1|pp/ID), data = wavelet_summary)
+model_wavelet <- lmer(mean_max_coh ~ time_bin + (1|pp/ID), data = wavelet_summary)
 summary(model_wavelet)
 ```
+
+```{r descriptives_wavelet}
+# Create descriptive statistics for wavelet analysis
+descriptives_wavelet <- wavelet_summary %>%
+  group_by(time_bin, pair_type) %>%
+  summarise(
+    n = n(),
+    Mean = mean(mean_max_coh, na.rm = TRUE),
+    SD = sd(mean_max_coh, na.rm = TRUE),
+    SE = SD / sqrt(n),
+    CI_lower = Mean - qt(0.975, n-1) * SE,
+    CI_upper = Mean + qt(0.975, n-1) * SE,
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    `95% CI` = paste0("[", round(CI_lower, 3), ", ", round(CI_upper, 3), "]")
+  ) %>%
+  select(pair_type, time_bin, n, Mean, SD, `95% CI`) %>%
+  mutate(
+    Mean = round(Mean, 3),
+    SD = round(SD, 3)
+  )
+
+# Display table
+knitr::kable(descriptives_wavelet,
+             caption = "Descriptive statistics: Wavelet coherence by time bin and pair type.",
+             col.names = c("Pair Type", "Time Bin", "N", "Mean", "SD", "95% CI")) %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
+```{r model_wavelet_detailed}
+# Reorder factors
+wavelet_summary$time_bin <- factor(wavelet_summary$time_bin, levels = c('early', 'late'))
+wavelet_summary$pair_type <- factor(wavelet_summary$pair_type, levels = c('false', 'real'))
+
+# Model comparison
+model_wavelet_null <- lmer(mean_max_coh ~ 1 + (1|pp/ID), data = wavelet_summary)
+model_wavelet_main <- lmer(mean_max_coh ~ time_bin + pair_type + (1|pp/ID), data = wavelet_summary)
+model_wavelet_interaction <- lmer(mean_max_coh ~ time_bin * pair_type + (1|pp/ID), data = wavelet_summary)
+
+comparison_wavelet_main <- anova(model_wavelet_null, model_wavelet_main)
+comparison_wavelet_interaction <- anova(model_wavelet_main, model_wavelet_interaction)
+
+# Create comparison tables
+comparison_wavelet_main_table <- data.frame(
+  Model = c("Null (Intercept only)", "Main effects (time bin + pair type)"),
+  npar = comparison_wavelet_main$npar,
+  AIC = round(comparison_wavelet_main$AIC, 2),
+  BIC = round(comparison_wavelet_main$BIC, 2),
+  logLik = round(comparison_wavelet_main$logLik, 2),
+  deviance = round(comparison_wavelet_main$deviance, 2),
+  Chisq = c(NA, round(comparison_wavelet_main$Chisq[2], 3)),
+  Df = c(NA, comparison_wavelet_main$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison_wavelet_main$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison_wavelet_main$`Pr(>Chisq)`[2], 3)))
+)
+
+comparison_wavelet_interaction_table <- data.frame(
+  Model = c("Main effects only", "Main effects + interaction"),
+  npar = comparison_wavelet_interaction$npar,
+  AIC = round(comparison_wavelet_interaction$AIC, 2),
+  BIC = round(comparison_wavelet_interaction$BIC, 2),
+  logLik = round(comparison_wavelet_interaction$logLik, 2),
+  deviance = round(comparison_wavelet_interaction$deviance, 2),
+  Chisq = c(NA, round(comparison_wavelet_interaction$Chisq[2], 3)),
+  Df = c(NA, comparison_wavelet_interaction$Df[2]),
+  `Pr(>Chisq)` = c(NA, ifelse(comparison_wavelet_interaction$`Pr(>Chisq)`[2] < .001, "< .001", 
+                               round(comparison_wavelet_interaction$`Pr(>Chisq)`[2], 3)))
+)
+
+# Model coefficients
+modelsummary_wavelet <- summary(model_wavelet_interaction)$coefficients
+colnames(modelsummary_wavelet) <- c('Estimate', 'SE', 'df', 't-value', 'p-value')
+rownames(modelsummary_wavelet) <- c('Intercept (early, false pairs)', 
+                                     'Late time bin',
+                                     'Real pairs',
+                                     'Late time bin × Real pairs')
+
+# Display tables
+knitr::kable(comparison_wavelet_main_table,
+             caption = "Model comparison: Main effects of time bin and pair type on wavelet coherence.") %>% 
+  kable_paper("hover", full_width = TRUE)
+
+knitr::kable(comparison_wavelet_interaction_table,
+             caption = "Model comparison: Interaction effect of time bin × pair type on wavelet coherence.") %>% 
+  kable_paper("hover", full_width = TRUE)
+
+knitr::kable(format(round(modelsummary_wavelet, digits = 3)),
+             caption = "Model coefficients: Effects of time bin and pair type on wavelet coherence.") %>% 
+  kable_paper("hover", full_width = TRUE)
+```
+
 
 # Exploratory analyses
 
@@ -1989,6 +2237,7 @@ pectoralis_peaks <- data.frame()
  for(ID in tr_wd_nomov$pptrial)
  {
    heartrate_duration <- tr_wd_nomov$heartrate_EMG_duration[tr_wd_nomov$pptrial==ID] #Note for Wim: for this, we can also use the mean distance between peaks, either via pectoralis_peaks$index (then you directly have index) or pectoralis_peaks$time
+   if(length(which(tsl_fulltime$pptrial == ID))==0) {next}
    index_duration <- 0.0004 #temporal distance between rows is 0.0004 s, as sampling rate is 2500 Hz
    heartrate_duration_indices <- heartrate_duration / index_duration 
 
@@ -1996,6 +2245,7 @@ pectoralis_peaks <- data.frame()
      dplyr::filter(pptrial == ID)
 
    #find peaks: we use 0.7 * duration of one heart cycle; also minpeakheight is set to 0   
+   if(is.na(heartrate_duration_indices)){next}
    pectoralis_peaks_temp <- data.frame(pracma::findpeaks(tsl_fulltime_temp$EMG, minpeakdistance = heartrate_duration_indices * 0.7, minpeakheight = 0)) 
   
    pectoralis_peaks_temp <- pectoralis_peaks_temp %>% 
@@ -2027,93 +2277,68 @@ tr_wd_nomov <- tr_wd_nomov %>%
 #we already have envelope velocity peaks for each trial in pectoralis_peaks$velocity_peak
 #we also already have all the peaks for the EMG signals stored there 
 #all we have to do is use the shuffling to assign the false pair velocity peaks
-
 #add pptrial_shuffled to tsl_fulltime
 shuffleddf <- tr_wd_nomov %>% 
   select(c(pptrial, pptrial_shuffled))
-
 tsl_fulltime_merged <- merge(tsl_fulltime, shuffleddf, by = "pptrial", all.x = TRUE)
+
+# INITIALIZE COLUMNS BEFORE THE LOOP
+tr_wd_nomov$heartrate_EMG_duration_shuffled <- NA
+tr_wd_nomov$closest_EMG_peak_fft_shuffled <- NA
 
 #set up loop for finding EMG peaks and then identifying the one closest to velocity peak
 pectoralis_peaks_shuffled_temp <- data.frame()
 pectoralis_peaks_shuffled <- data.frame()
 
 for(shuffleID in tr_wd_nomov$pptrial_shuffled)
- {
-   #get the corresponding ID from pptrial
-   ID <- tr_wd_nomov$pptrial[tr_wd_nomov$pptrial_shuffled == shuffleID]
-   #pick the heart rate_duration from the randomly assigned EMG signal
-   heartrate_duration <- tr_wd_nomov$heartrate_EMG_duration[tr_wd_nomov$pptrial==shuffleID] #Note for Wim: as noted above: for this, we can also use the mean distance between peaks, either via pectoralis_peaks_shuffled$index (then you directly have index) or pectoralis_peaks$time; make sure, you pick the right one
-   tr_wd_nomov$heartrate_EMG_duration_shuffled[tr_wd_nomov$pptrial_shuffled==shuffleID] <- tr_wd_nomov$heartrate_EMG_duration[tr_wd_nomov$pptrial==shuffleID]
-   index_duration <- 0.0004 #temporal distance between rows is 0.0004 s, as sampling rate is 2500 Hz
-   heartrate_duration_indices <- heartrate_duration / index_duration 
-
-   tsl_fulltime_temp <- tsl_fulltime_merged %>%
-     dplyr::filter(pptrial == shuffleID)
-
-   #find peaks: we use 0.7 * duration of one heart cycle; also minpeakheight is set to 0   
-   pectoralis_peaks_shuffled_temp <- data.frame(pracma::findpeaks(tsl_fulltime_temp$EMG, minpeakdistance = heartrate_duration_indices * 0.7, minpeakheight = 0))
+{
+  #get the corresponding ID from pptrial
+  ID <- tr_wd_nomov$pptrial[tr_wd_nomov$pptrial_shuffled == shuffleID]
   
-   pectoralis_peaks_shuffled_temp <- pectoralis_peaks_shuffled_temp %>% 
-   dplyr::rename(height = X1,
-                 index = X2,
-                 onset = X3,
-                 end = X4) %>% 
-  dplyr:: arrange(index)
-   
-  pectoralis_peaks_shuffled_temp <- pectoralis_peaks_shuffled_temp %>% 
-     mutate(time = index * index_duration)
+  #pick the heart rate_duration from the randomly assigned EMG signal
+  heartrate_duration <- tr_wd_nomov$heartrate_EMG_duration[tr_wd_nomov$pptrial==shuffleID]
+  
+  # CHECK THIS FIRST before using it
+  if(is.na(heartrate_duration)) {next}
+  
+  tr_wd_nomov$heartrate_EMG_duration_shuffled[tr_wd_nomov$pptrial_shuffled==shuffleID] <- heartrate_duration
+  
+  index_duration <- 0.0004 #temporal distance between rows is 0.0004 s, as sampling rate is 2500 Hz
+  heartrate_duration_indices <- heartrate_duration / index_duration 
+  
+  if(is.na(heartrate_duration_indices)){next}
+  
+  tsl_fulltime_temp <- tsl_fulltime_merged %>%
+    dplyr::filter(pptrial == shuffleID)
+  
+  #find peaks: we use 0.7 * duration of one heart cycle; also minpeakheight is set to 0 
+  pectoralis_peaks_shuffled_temp <- data.frame(pracma::findpeaks(tsl_fulltime_temp$EMG, minpeakdistance = heartrate_duration_indices * 0.7, minpeakheight = 0))
  
+  pectoralis_peaks_shuffled_temp <- pectoralis_peaks_shuffled_temp %>% 
+    dplyr::rename(height = X1,
+                  index = X2,
+                  onset = X3,
+                  end = X4) %>% 
+    dplyr::arrange(index)
+  
+  pectoralis_peaks_shuffled_temp <- pectoralis_peaks_shuffled_temp %>% 
+    mutate(time = index * index_duration)
+
   pectoralis_peaks_shuffled_temp$velocity_peak <- tr_wd_nomov %>% 
     dplyr::filter(pptrial_shuffled == shuffleID) %>% 
     pull(highest_veloc_peak_time) / 1000
-    
+   
   #use vocalization onset; computed above via peak velocity of amplitude envelope of vocalization
-   tr_wd_nomov$closest_EMG_peak_fft_shuffled[tr_wd_nomov$pptrial_shuffled==shuffleID] <- pectoralis_peaks_shuffled_temp$time[which.min(abs(pectoralis_peaks_shuffled_temp$time - pectoralis_peaks_shuffled_temp$velocity_peak))] * 1000
-   
-#   pectoralis_peaks$velocity_peak_shuffled[pectoralis_peaks$pptrial_shuffled==ID] <- velocity_peak_shuffled
-#   tr_wd_nomov$highest_veloc_peak_time_false[tr_wd_nomov$pptrial_shuffled==ID] <- velocity_peak_shuffled * 1000
-
-   
-   pectoralis_peaks_shuffled_temp$pptrial_shuffled <- shuffleID
-   pectoralis_peaks_shuffled <- rbind(pectoralis_peaks_shuffled, pectoralis_peaks_shuffled_temp)
- }
+  tr_wd_nomov$closest_EMG_peak_fft_shuffled[tr_wd_nomov$pptrial_shuffled==shuffleID] <- pectoralis_peaks_shuffled_temp$time[which.min(abs(pectoralis_peaks_shuffled_temp$time - pectoralis_peaks_shuffled_temp$velocity_peak))] * 1000
+  
+  pectoralis_peaks_shuffled_temp$pptrial_shuffled <- shuffleID
+  pectoralis_peaks_shuffled <- rbind(pectoralis_peaks_shuffled, pectoralis_peaks_shuffled_temp)
+}
 
 #finally, compute the distance between the randomly assigned closest EMG peak and the highest velocity peak time
 tr_wd_nomov <- tr_wd_nomov %>% 
   mutate(ampEMG_peakdistance_shuffled = closest_EMG_peak_fft_shuffled - highest_veloc_peak_time)
 
-#first include pptrial_shuffled here
-# pectoralis_peaks <- left_join(pectoralis_peaks,
-#                               select(tr_wd_nomov, pptrial, pptrial_shuffled),
-#                               by = "pptrial")
-# 
-# pectoralis_peaks$velocity_peak_shuffled <- NA
-# tr_wd_nomov$closest_EMG_peak_fft_false <- NA
-# tr_wd_nomov$highest_veloc_peak_time_false <- NA
-# for(ID in pectoralis_peaks$pptrial_shuffled)
-# {
-#   
-#   velocity_peak_shuffled <- pectoralis_peaks$velocity_peak[pectoralis_peaks$pptrial==ID][1]
-#   pectoralis_peaks$velocity_peak_shuffled[pectoralis_peaks$pptrial_shuffled==ID] <- velocity_peak_shuffled
-#   tr_wd_nomov$highest_veloc_peak_time_false[tr_wd_nomov$pptrial_shuffled==ID] <- velocity_peak_shuffled * 1000
-#   
-#   # tr_wd_nomov$velocity_peak_false[pectoralis_peaks$pptrial_shuffled==ID] <- pectoralis_peaks$velocity_peak[pectoralis_peaks$pptrial==ID][1]
-#     #tr_wd_nomov$closest_EMG_peak_fft_false[tr_wd_nomov$pptrial_shuffled==ID] <- 
-#   # closest_EMG_peak_fft_false <- pectoralis_peaks %>% 
-#   #   dplyr::filter(pptrial_shuffled == ID) %>% 
-#   #   pukk(time) 
-#   #   mutate(min_diff = abs(time - velocity_peak_shuffled)) %>%
-#   #   slice(which.min(min_diff)) %>%
-#   #   summarise(time_milliseconds = time * 1000)
-#        
-#   closest_EMG_peak_fft_false <- pectoralis_peaks$time[pectoralis_peaks$pptrial_shuffled==ID] [which.min(abs(pectoralis_peaks$time[pectoralis_peaks$pptrial_shuffled==ID] - pectoralis_peaks$velocity_peak_shuffled[pectoralis_peaks$pptrial_shuffled==ID]))] * 1000
-#   
-#   tr_wd_nomov$closest_EMG_peak_fft_false[tr_wd_nomov$pptrial_shuffled == ID] <- closest_EMG_peak_fft_false
-# }
-# 
-# tr_wd_nomov <- tr_wd_nomov %>% 
-#   mutate(ampEMG_peakdistance_false = closest_EMG_peak_fft_false - highest_veloc_peak_time_false)
 ```
 
 We found the median value of the distance between velocity peak and the closest peak in the EMG signal to be `r printnum(median(tr_wd_nomov$ampEMG_peakdistance))` ms, with a standard deviation of `r printnum(sd(tr_wd_nomov$ampEMG_peakdistance))` ms.
@@ -2178,28 +2403,7 @@ tr_wd_nomov_degrees$variable <- factor(tr_wd_nomov_degrees$variable,
                              levels = c("degree_false", "degree"),
                              labels = c("real pairs", "false pairs"))
 
-
-#create density circle plot for this
-density_degrees_circle <- tr_wd_nomov_degrees %>% 
-  dplyr::filter(value <= 360) %>% 
-  ggplot(aes(x=abs(value))) + 
-  geom_density(aes(color = variable, fill = variable), size = 1.5, alpha = 0.5) +
-  theme_cowplot(12) +
-  scale_x_continuous(name = "Degrees", breaks=c(0, 90, 180, 270, 360)) +
-  scale_y_continuous(name = "Density") +
-  geom_vline(aes(xintercept = 0), linetype = 2) +
-  geom_vline(aes(xintercept = 90), linetype = 2) +
-  geom_vline(aes(xintercept = 180), linetype = 2) +
-  geom_vline(aes(xintercept = 270), linetype = 2) +
-  geom_vline(aes(xintercept = 360), linetype = 2) +
-  coord_polar() +
-  background_grid() +
-  scale_colour_brewer(palette = "Set1")+
-  theme(legend.position = "bottom", legend.box = "horizontal", legend.justification = "center",
-        legend.title = element_blank())
-
-
-#also plot it straight, but including negative values
+# plot it straight, but including negative values
 density_degrees <- tr_wd_nomov_degrees %>% 
   ggplot(aes(x=value)) + 
   geom_density(aes(color = variable, fill = variable), size = 1.5, alpha = 0.5) +
@@ -2227,6 +2431,3 @@ density_degrees <- tr_wd_nomov_degrees %>%
 plot_grid(density_degrees)
 ```
 
-```{r degreescircle, echo=FALSE, message = FALSE, fig.cap = "Density plot showing the distance distance between velocity peak and the nearest EMG peak. Distance was transformed to degrees. Values were absolutized here.", fig.height = 4}
-plot_grid(density_degrees_circle)
-```
