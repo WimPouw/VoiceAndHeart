@@ -30,7 +30,7 @@ author:
   address: Thomas van Aquinolaan 4, 6525 AJ Nijmegen, The Netherlands
 ---
 
-This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Dissociating mechanisms of heart-voice coupling". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository (redacted for review).
+This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Dissociating mechanisms of heart-voice coupling". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository and forms the input for these scripts [https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259](https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259).
 
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
@@ -812,9 +812,9 @@ for(i in seq_along(trial_ids)) {
 
 ```
 
-Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the vocal amplitude has been detrended.
+Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 8) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the vocal amplitude has been detrended.
 
-```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example trial (no movement condition) showing the detrended vocal amplitude and the trendline (black), as well as the EMG signals for pectoralis major and rectus abdominis.", fig.height = 4}
+```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example of 5 trials of a representative participant (participant 8). Left: the normalized and detrended amplitude envelopes in black and the normalized EMG/ECG signals from the pectoralis major in pink. Middle: Lissajous coupling motifs (x = amplitude envelope, y = EMG/ECG). Right: the normalized power spectra (fft) of the amplitude envelope in black and the EMG/ECG signal in pink.", fig.height = 10}
 # Stack all trials vertically
 do.call(grid.arrange, c(all_plots, ncol = 1))
 ```
