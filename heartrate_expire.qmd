@@ -4,6 +4,7 @@ description: |
   Extended results: Heart-expiration coupling
 author:
 - name: Marijn Hafkamp
+  email: marijn.hafkamp@gmail.com
   corresponding: yes
   url: https://orcid.org/0000-0002-3719-7586
   affiliation: Radboud University Nijmegen, Donders Institute for Brain, Cognition, and Behaviour
@@ -22,7 +23,7 @@ author:
   orcid_id: 0000-0001-5774-5415
 - name: Wim Pouw
   corresponding: yes
-  email: wim.pouw@donders.ru.nl
+  email: w.pouw@tilburguniversity.edu
   url: https://wimpouw.com/
   affiliation: Tilburg University, Department of Computational Cognitive Science
   orcid_id: 0000-0003-2729-6502
@@ -1069,7 +1070,7 @@ for(i in seq_along(trial_ids)) {
 
 ```
 
-Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the expration noise amplitude has been detrended.
+Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 8) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the expration noise amplitude has been detrended.
 
 ```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example of 5 trials of a representative participant (participant 8). Left: the normalized and detrended amplitude envelopes in black and the normalized EMG/ECG signals from the pectoralis major in pink. Middle: Lissajous coupling motifs (x = amplitude envelope, y = EMG/ECG). Right: the normalized power spectra (fft) of the amplitude envelope in black and the EMG/ECG signal in pink.", fig.height = 10}
 # Stack all trials vertically

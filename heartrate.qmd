@@ -23,7 +23,7 @@ author:
   orcid_id: 0000-0001-5774-5415
 - name: Wim Pouw
   corresponding: yes
-  email: wim.pouw@donders.ru.nl
+  email: w.pouw@tilburguniversity.edu
   url: https://wimpouw.com/
   affiliation: Tilburg University, Department of Computational Cognitive Science
   orcid_id: 0000-0003-2729-6502
