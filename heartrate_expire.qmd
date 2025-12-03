@@ -29,7 +29,7 @@ author:
   address: Thomas van Aquinolaan 4, 6525 AJ Nijmegen, The Netherlands
 ---
 
-This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Dissociating mechanisms of heart-voice coupling". For clarity, it is indicated on the right, what sections in the paper the respective part refers to. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository and forms the input for these scripts [https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259](https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259).
+This is a fully computationally reproducible manuscript written in Rmarkdown. It contains the extended results and supplementary information of "Dissociating mechanisms of heart-voice coupling". For clarity, the section of the paper corresponding to the code chunks is indicated in the right. Code chunks are hidden by default, but can be made visible by clicking "Show code". The full dataset is available at the Donders Repository and forms the input for these scripts [https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259](https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259).
 
 ```{r, include = FALSE, code_folding = TRUE}
 set.seed(42)
@@ -115,7 +115,7 @@ mtlist$ppn <- parse_number(as.character(mtlist$ppn))
 
 ### EMG pre-processing
 
-Rather than filtering the EMG signal to reduce heart rate artifacts [@drakeEliminationElectrocardiogramContamination2006], we were interested in the heart rate as present in the EMG signal. Accordingly, we removed any higher-frequency components from the signal and retained low-frequency bands, while removing the very low components to avoid baseline drift. This was done by high-pass filtering the signal at 0.75 Hz using a zero-phase 4th order Butterworth filter. We then full-wave rectified the EMG signal and applied a zero-phase low-pass 4th order Butterworth filter at 3 Hz. When filtering any signal we padded the signals to avoid edge effects.
+Rather than filtering the four sEMG signals (erector spinae, infraspinatus, pectoralis major and rectus abdominis) to reduce heart rate artifacts [@drakeEliminationElectrocardiogramContamination2006], we were interested in the reflection of heart rate as present in the sEMG signals. Accordingly, we removed any higher-frequency components from the signal and retained low-frequency bands, while removing the very low components to avoid baseline drift. This was done by high-pass filtering the signal at 0.75 Hz using a zero-phase 4th order Butterworth filter. We then full-wave rectified the EMG signal and applied a zero-phase low-pass 4th order Butterworth filter at 3 Hz. We padded the signals upon filtering to avoid edge effects.
 
 In other words, the pass-band from 0.75 to 3 Hz allowed us to cover any heart rates from 45 to 180 beats per minute.
 
@@ -162,7 +162,7 @@ samplingrate <- 1/mean(diff(emgd$time_s))
 nyquistemg <- samplingrate/2
 ```
 
-When applying the filter as specified above, this is what the EMG signal looked like for a participant in the no movement condition.
+When applying the filter as specified above, this is what the sEMG signal looked like for a participant in the no movement condition.
 
 ```{r, EMGpreprocessnomovement, warning = FALSE, echo = TRUE, code_folding = "Show code preprocessing EMG data", message = FALSE}
 #show another example, now from no movement condition
@@ -244,13 +244,13 @@ filteredEMGnomoverector <- ggplot(emgdnomov[seq(1, nrow(emgdnomov),by=5),], aes(
     theme(legend.position = "none")
 ```
 
-```{r EMGnomovsmoothing, echo=FALSE, fig.cap = "Example of heart rate/ECG signal's presence in the four different EMG signals. This example is from the no movement condition."}
+```{r EMGnomovsmoothing, echo=FALSE, fig.cap = "Example of heart rate/ECG signal's presence in the four different sEMG signals. This example is from the no movement condition."}
 grid.arrange(filteredEMGnomov)
 ```
-Fig.\@ref(fig:EMGnomovsmoothing) shows the four different, filtered EMG signals in one plot. 
-To further inspect, which ones are more apt for studying heart rate, we have separated the signals in Fig.\@ref(fig:EMGnomovsmoothingseparate).
+Fig.\@ref(fig:EMGnomovsmoothing) shows the four different, filtered sEMG signals in one plot. 
+To further inspect, which ones are more apt for studying heart rate, we have separated the signals in Fig.\@ref(fig:EMGnomovsmoothingseparate).As becomes clear from these graphs, both the pectoralis major and rectus abdominis signals clearly reflect the cardiac activity. 
 
-```{r EMGnomovsmoothingseparate, echo=FALSE, fig.cap = "Example of heart rate/ECG signal's presence in the EMG signals. The plot shows the raw rectified high-pass filtered EMG. This example shows a no movement. The heart rate peaks are especially visible in the EMG of the pectoralis major and the rectus abdominis, and less strongly in erector spinae and infraspinatus. The latter are attached on the participant's back and more distant to the heart."}
+```{r EMGnomovsmoothingseparate, echo=FALSE, fig.cap = "Example of heart rate/ECG signal's presence in the sEMG signals. The plot shows the raw rectified high-pass filtered EMG. This example shows a no movement. The heart rate peaks are especially visible in the sEMG of the pectoralis major and the rectus abdominis, and less strongly in erector spinae and infraspinatus. The latter are attached on the participant's back and more distant to the heart."}
 grid.arrange(filteredEMGnomovpec, filteredEMGnomovrectus, filteredEMGnomoverector, filteredEMGnomovinfra, nrow = 2)
 ```
 
@@ -393,7 +393,8 @@ for(ID in triallist$uniquetrial)
 
 ### Detrending and normalization
 Note that there is a general decline in the amplitude of the vocalization during a trial (see Fig. \@ref(fig:combinedtimeseries), top panel). This is to be expected, as the subglottal pressure falls when the lungs deflate. To quantify deviations from stable vocalizations, we therefore detrended the amplitude envelope time series, so as to assess positive or negative peaks relative to this trend line.
-Moreover, we scaled the two EMG signals by using the mean and standard deviation from the middle section, i.e. 1 to 6 s, which we also used in most of the analyses here. This provides a better scaling, as the times outside of that range can have quite high/low values.
+
+Moreover, we normalized the amplitude and the two sEMG signals using the mean and standard deviation from the middle section, i.e. 1 to 6 s, which we also used in most of the analyses here. This provides a better scaling, as the times outside of that range can have quite high/low values.
 
 ```{r normalization_EMG, cache = FALSE, ECHO = TRUE, code_folding = "Show code scaling data within participant"}
 #We have to do some within participant scaling, such that
@@ -653,7 +654,6 @@ tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn)
 
 ```
 
-To make sure that all participants show heart rate in the EMG measured on the anterior side of their body, we will here visualize them all.
 
 ```{r, cache = FALSE, echo = TRUE, warning = FALSE, message = FALSE, code_folding = "Show code"} 
 
@@ -701,124 +701,7 @@ filteredEMGnomovrectus <- ggplot(emgdnomov[seq(1, nrow(emgdnomov),by=5),], aes(x
   theme(legend.position = "none")
 ```
 
-```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot",results="hide", fig.show="hide", message = FALSE, warning=FALSE}
-library(gridExtra)
-
-# Select example trials
-ex5 <- subset(nomovement, nomovement$tr %in% unique(nomovement$tr[nomovement$pp==8])[1:5])
-ex5$EMG <- scale(ex5$pectoralis_major)
-
-# Normalize
-ex5$time_ms <- round(ex5$time_s_c*1000)
-
-# Function to create time series plot for one trial
-create_timeseries <- function(data, trial_id) {
-  trial_data <- data[data$pptrial == trial_id, ]
-  
-  ggplot(trial_data, aes(x=time_ms)) +
-    geom_path(aes(y=scale(EMG), color = 'pectoralis major'), size = 0.5) +
-    geom_path(aes(y=scale(env_z_detrend)), color="black", size = 0.5) +
-    scale_color_manual(values = colors_mus) +
-    scale_y_continuous(
-      name = "EMG/ECG",
-      sec.axis = sec_axis(~., name="Expiration noise amplitude"),
-      limits = c(-2, 2.5)
-    ) +
-    theme_cowplot(12) +
-    theme(legend.position = "none") +
-    geom_hline(yintercept= 0, linetype = 2, size = 0.3) +
-    scale_x_continuous(limits = c(1000, 6000), breaks = seq(1000, 6000, 1000)) +
-    xlab('Time (ms)') +
-    ggtitle(trial_id)
-}
-
-# Function to create Lissajous plot for one trial (square)
-create_lissajous <- function(data, trial_id) {
-  trial_data <- data[data$pptrial == trial_id, ]
-  
-  ggplot(trial_data, aes(x = scale(EMG), y = scale(env_z_detrend))) +
-    geom_path(alpha = 0.6, size = 0.5) +
-    geom_point(alpha = 0.1, size = 0.3) +
-    labs(x = "EMG", y = "Expiration noise amplitude") +
-    theme_cowplot(12) +
-    coord_fixed(ratio = 1) +
-    theme(aspect.ratio = 1)
-}
-
-# Function to create FFT overlay plot
-create_fft_plot <- function(data, trial_id) {
-  trial_data <- data[data$pptrial == trial_id, ]
-  
-  # Remove NAs
-  trial_data <- trial_data[!is.na(trial_data$EMG) & !is.na(trial_data$env_z_detrend), ]
-  
-  # Compute FFT for EMG
-  N_emg <- length(trial_data$EMG)
-  fft_emg <- abs(fft(scale(trial_data$EMG)))
-  half_N_emg <- floor(N_emg/2)
-  freq_emg <- seq(0, length.out = half_N_emg) * 2500 / N_emg
-  fft_emg_half <- fft_emg[1:half_N_emg]
-  fft_emg_norm <- fft_emg_half / max(fft_emg_half)
-  
-  # Compute FFT for envelope
-  N_env <- length(trial_data$env_z_detrend)
-  fft_env <- abs(fft(scale(trial_data$env_z_detrend)))
-  half_N_env <- floor(N_env/2)
-  freq_env <- seq(0, length.out = half_N_env) * 2500 / N_env
-  fft_env_half <- fft_env[1:half_N_env]
-  fft_env_norm <- fft_env_half / max(fft_env_half)
-  
-  # Create dataframes
-  df_emg <- data.frame(frequency = freq_emg, power = fft_emg_norm, signal = "EMG")
-  df_env <- data.frame(frequency = freq_env, power = fft_env_norm, signal = "Envelope")
-  df_fft <- rbind(df_emg, df_env)
-  
-  # Filter to 0.5-3 Hz
-  df_fft <- df_fft[df_fft$frequency >= 0.5 & df_fft$frequency <= 3, ]
-  
-  # Get heart rate for vertical line
-  hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == trial_id]
-  
-  ggplot(df_fft, aes(x = frequency, y = power, color = signal, fill = signal)) +
-    geom_area(alpha = 0.5, position = "identity") +
-    geom_line(alpha = 0.8, size = 0.8) +
-    scale_color_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
-    scale_fill_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
-    geom_vline(xintercept = hr_hz, linetype = 2, color = "gray20", size = 0.5) +
-    labs(x = "Frequency (Hz)", y = "Normalized power") +
-    scale_x_continuous(limits = c(0.5, 3), breaks = seq(0.5, 3, 0.5)) +
-    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
-    theme_cowplot(12) +
-    theme(legend.position = c(0.85, 0.85),
-          legend.title = element_blank(),
-          legend.background = element_rect(fill = "white", color = NA))
-}
-
-# Create combined plots for each trial
-trial_ids <- unique(ex5$pptrial)
-all_plots <- list()
-
-for(i in seq_along(trial_ids)) {
-  ts_plot <- create_timeseries(ex5, trial_ids[i])
-  lj_plot <- create_lissajous(ex5, trial_ids[i])
-  fft_plot <- create_fft_plot(ex5, trial_ids[i])
-  
-  all_plots[[i]] <- grid.arrange(ts_plot, lj_plot, fft_plot, 
-                                  ncol = 3, 
-                                  widths = c(1.2, 1, 1.2))
-}
-
-
-```
-
-Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the expration noise amplitude has been detrended.
-
-```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example of 5 trials of a representative participant (participant 8). Left: the normalized and detrended amplitude envelopes in black and the normalized EMG/ECG signals from the pectoralis major in pink. Middle: Lissajous coupling motifs (x = amplitude envelope, y = EMG/ECG). Right: the normalized power spectra (fft) of the amplitude envelope in black and the EMG/ECG signal in pink.", fig.height = 10}
-# Stack all trials vertically
-do.call(grid.arrange, c(all_plots, ncol = 1))
-```
-
-Let's also visualize all the detrended envelope amplitudes. 
+As a next step, we plotted all detrended amplitude envelopes, as well as all sEMG signals of the pectoralis major and the rectus abdominis. 
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot", message = FALSE}
 nomovement$pp <- as.factor(nomovement$pp)
@@ -883,7 +766,7 @@ plot_grid(allrectus)
 ```
 
 
-The next code chunk runs FFTs on the two EMG signals. We use this to determine the frequency component with the highest magnitude, which is the participant's heart rate.
+Subsequently, we ran FFTs on the two sEMG signals (rectus abdominis and pectoralis major). We use this to determine the frequency component with the highest magnitude, which constituted the participant's heart rate. Again, we plotted the power spectrums of all trials. 
  
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
@@ -1074,13 +957,135 @@ nomovement <- nomovement %>%
 plot_grid(heartrateplot)
 ```
 
+As a last step, to visualize the relationship between the sEMG/ECG and the vocal amplitude for one examplary participant (participant 8), we plotted the normalized timeseries, Lissajous graphs and power spectrums (Fourier transform, fft) in one graph.  
+
+```{r, warning = FALSE, echo = TRUE, code_folding = "Show code producing the plot",results="hide", fig.show="hide", message = FALSE, warning=FALSE}
+library(gridExtra)
+
+# Select example trials
+ex5 <- subset(nomovement, nomovement$tr %in% unique(nomovement$tr[nomovement$pp==8])[1:5])
+ex5$EMG <- scale(ex5$pectoralis_major)
+
+# Normalize
+ex5$time_ms <- round(ex5$time_s_c*1000)
+
+# Function to create time series plot for one trial
+create_timeseries <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  ggplot(trial_data, aes(x=time_ms)) +
+    geom_path(aes(y=scale(EMG), color = 'pectoralis major'), size = 0.5) +
+    geom_path(aes(y=scale(env_z_detrend)), color="black", size = 0.5) +
+    scale_color_manual(values = colors_mus) +
+    scale_y_continuous(
+      name = "EMG/ECG",
+      sec.axis = sec_axis(~., name="Expiration noise amplitude"),
+      limits = c(-2, 2.5)
+    ) +
+    theme_cowplot(12) +
+    theme(legend.position = "none") +
+    geom_hline(yintercept= 0, linetype = 2, size = 0.3) +
+    scale_x_continuous(limits = c(1000, 6000), breaks = seq(1000, 6000, 1000)) +
+    xlab('Time (ms)') +
+    ggtitle(trial_id)
+}
+
+# Function to create Lissajous plot for one trial (square)
+create_lissajous <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  ggplot(trial_data, aes(x = scale(EMG), y = scale(env_z_detrend))) +
+    geom_path(alpha = 0.6, size = 0.5) +
+    geom_point(alpha = 0.1, size = 0.3) +
+    labs(x = "EMG", y = "Expiration noise amplitude") +
+    theme_cowplot(12) +
+    coord_fixed(ratio = 1) +
+    theme(aspect.ratio = 1)
+}
+
+# Function to create FFT overlay plot
+create_fft_plot <- function(data, trial_id) {
+  trial_data <- data[data$pptrial == trial_id, ]
+  
+  # Remove NAs
+  trial_data <- trial_data[!is.na(trial_data$EMG) & !is.na(trial_data$env_z_detrend), ]
+  
+  # Compute FFT for EMG
+  N_emg <- length(trial_data$EMG)
+  fft_emg <- abs(fft(scale(trial_data$EMG)))
+  half_N_emg <- floor(N_emg/2)
+  freq_emg <- seq(0, length.out = half_N_emg) * 2500 / N_emg
+  fft_emg_half <- fft_emg[1:half_N_emg]
+  fft_emg_norm <- fft_emg_half / max(fft_emg_half)
+  
+  # Compute FFT for envelope
+  N_env <- length(trial_data$env_z_detrend)
+  fft_env <- abs(fft(scale(trial_data$env_z_detrend)))
+  half_N_env <- floor(N_env/2)
+  freq_env <- seq(0, length.out = half_N_env) * 2500 / N_env
+  fft_env_half <- fft_env[1:half_N_env]
+  fft_env_norm <- fft_env_half / max(fft_env_half)
+  
+  # Create dataframes
+  df_emg <- data.frame(frequency = freq_emg, power = fft_emg_norm, signal = "EMG")
+  df_env <- data.frame(frequency = freq_env, power = fft_env_norm, signal = "Envelope")
+  df_fft <- rbind(df_emg, df_env)
+  
+  # Filter to 0.5-3 Hz
+  df_fft <- df_fft[df_fft$frequency >= 0.5 & df_fft$frequency <= 3, ]
+  
+  # Get heart rate for vertical line
+  hr_hz <- tr_wd_nomov$heartrate_EMG_hz[tr_wd_nomov$pptrial == trial_id]
+  
+  ggplot(df_fft, aes(x = frequency, y = power, color = signal, fill = signal)) +
+    geom_area(alpha = 0.5, position = "identity") +
+    geom_line(alpha = 0.8, size = 0.8) +
+    scale_color_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
+    scale_fill_manual(values = c("EMG" = col_pectoralis, "Envelope" = "black")) +
+    geom_vline(xintercept = hr_hz, linetype = 2, color = "gray20", size = 0.5) +
+    labs(x = "Frequency (Hz)", y = "Normalized power") +
+    scale_x_continuous(limits = c(0.5, 3), breaks = seq(0.5, 3, 0.5)) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+    theme_cowplot(12) +
+    theme(legend.position = c(0.85, 0.85),
+          legend.title = element_blank(),
+          legend.background = element_rect(fill = "white", color = NA))
+}
+
+# Create combined plots for each trial
+trial_ids <- unique(ex5$pptrial)
+all_plots <- list()
+
+for(i in seq_along(trial_ids)) {
+  ts_plot <- create_timeseries(ex5, trial_ids[i])
+  lj_plot <- create_lissajous(ex5, trial_ids[i])
+  fft_plot <- create_fft_plot(ex5, trial_ids[i])
+  
+  all_plots[[i]] <- grid.arrange(ts_plot, lj_plot, fft_plot, 
+                                  ncol = 3, 
+                                  widths = c(1.2, 1, 1.2))
+}
+
+
+```
+
+Fig.\@ref(fig:detrendedexample) uses the same data as the example trial from above (participant 10) (Fig.\@ref(fig:combinedtimeseriesnomov2)), but the expration noise amplitude has been detrended.
+
+```{r detrendedexample, echo=FALSE, message = FALSE, fig.cap = "Example of 5 trials of a representative participant (participant 8). Left: the normalized and detrended amplitude envelopes in black and the normalized EMG/ECG signals from the pectoralis major in pink. Middle: Lissajous coupling motifs (x = amplitude envelope, y = EMG/ECG). Right: the normalized power spectra (fft) of the amplitude envelope in black and the EMG/ECG signal in pink.", fig.height = 10}
+# Stack all trials vertically
+do.call(grid.arrange, c(all_plots, ncol = 1))
+```
+
+
+
+
 # Hypothesis testing
 
-In this section, tested two hypotheses.  
+In this section, tested two hypotheses related to heart-expiration noise coupling.  
 
 ## Hypothesis 1: The amplitude of the noise of a sustained expiration is coherent with the cardiac activity 
 
-To test this hypothesis, we computed the coherence between the pectoralis major EMG signal and amplitude envelope time series.
+To test this hypothesis, we computed the squared magnitude coherence between the pectoralis major EMG signal and amplitude envelope time series.
 We did so for real pairs, i.e. both time series are from the same trial, and false pairs, i.e. the two signals are randomly combined across trials.
 
 The false pairs we created by using base R's sample(), which creates a shuffled, random vector of the trials.
@@ -1175,7 +1180,7 @@ falsepairs <- falsepairs %>%
 
 ```
 
-Now we use these two newly created data frames to compute coherence for false and real pairs.
+We then used these two newly created data frames to compute coherence for false and real pairs.
 
 ```{r, warning = FALSE, echo = TRUE,cache = FALSE, code_folding = "Show code for coherence analysis", message = FALSE}
 ### compute coherence
@@ -1410,7 +1415,7 @@ comparison_table <- data.frame(
 
 ```
 
-While we think weight cannot have an effect on the heart-voice coupling as participants were not moving, it is good to check this. Below in table S\@ref(tab:weight_comparison) we report the comparison between a model predicting the overall mean coherence, versus a model predicting coherence as predicted by wearing a 1kg weight or not. Weight was not a reliable predictor.
+While we did not expect the weight wrists, worn in some of the conditions, to have affected heart-voice coupling in no movement conditions, we checked this assumption here. Below in table S\@ref(tab:weight_comparison) we report the comparison between a model predicting the overall mean coherence, versus a model predicting coherence as predicted by wearing a 1kg weight or not. Since weight was not a reliable predictor, we intepreted this as proff that the weight wrists did not affect our results on hearth-voice coupling.
 
 
 ```{r weight_comparison, echo=FALSE}
@@ -1768,7 +1773,7 @@ firstsecondhalf_coherence$half <- factor(firstsecondhalf_coherence$half, levels 
 firstsecondhalf_coherence$pair_type <- factor(firstsecondhalf_coherence$pair_type, levels = c('false', 'real'))
 ```
 
-Now that we have the coherence values, we can plot (see Fig. \@ref(fig:coherencefirstsecondhalfplot)) and model the potential difference.
+Having computed the coherence values, we plotted (see Fig. \@ref(fig:coherencefirstsecondhalfplot)) and modeled the differences between the first and second half of the vocalization, as illustrated in the Figure below. Comparison of the boxplot revealed that the coherence values were higher for real pairs than for false pairs, as shown earlier. However, we did not find significant differences between the first and the second half of the vocalization. 
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code creating the boxplot", message = FALSE}
 # Define bright contrasting colors
@@ -1837,6 +1842,8 @@ B_halves <- ggplot(firstsecondhalf_coherence_means, aes(x = half, y = coherence_
 # Combined plot
 plot_grid(A_halves, B_halves, labels = c('A', 'B'), ncol = 2)
 ```
+
+This was statistically confirmed by our mixed linear regression analyses with participant as random intercept. Whereas the inclusion of pairing type (real pairs vs false pairs) and half (first half vs second half) as main effects improved the model fit, the inclusion of a pairing type x half interaction did not do so. All model coefficients are shown in the tables below. 
 
 
 ```{r descriptives_halves, warning = FALSE, echo = TRUE, code_folding = "Show code creating descriptive statistics for halves", message = FALSE}
@@ -1929,7 +1936,7 @@ knitr::kable(format(round(modelsummary_halves, digits = 3)),
 
 # Exploratory analyses
 
-In this section, we performed a pair of analyses on our data without a-prior expectations. 
+In this section, we performed a pair of exploratory analyses on our data without a-prior expectations. 
 
 ## Is the strength of the heart-voice coupling related to heart rate? 
 
