@@ -1,0 +1,187 @@
+---
+title: "Dissociating mechanisms of heart-voice coupling"
+description: | 
+  Extended results: Heart-expiration coupling
+author:
+- name: Marijn Hafkamp
+  email: marijn.hafkamp@gmail.com
+  corresponding: yes
+  url: https://orcid.org/0000-0002-3719-7586
+  affiliation: Radboud University Nijmegen, Donders Institute for Brain, Cognition, and Behaviour
+  orcid_id: 0000-0002-3719-7586
+- name: Raphael Werner
+  url: https://raphael-werner.github.io/
+  affiliation: Donders Institute for Brain, Cognition, and Behaviour
+  orcid_id: 0000-0002-4080-7883
+- name: Linda Drijvers
+  url: https://www.leibniz-zas.de/de/personen/details/burchardt-lara-sophie/lara-sophie-burchardt
+  affiliation: Donders Institute for Brain, Cognition, and Behaviour
+  orcid_id: 0000-0001-9154-7033
+- name: Luc Selen
+  url: https://www.ru.nl/sensorimotorlab/people/current-members/luc-selen/
+  affiliation: Donders Institute for Brain, Cognition, and Behaviour
+  orcid_id: 0000-0001-5774-5415
+- name: Wim Pouw
+  corresponding: yes
+  email: w.pouw@tilburguniversity.edu
+  url: https://wimpouw.com/
+  affiliation: Tilburg University, Department of Computational Cognitive Science
+  orcid_id: 0000-0003-2729-6502
+  address: Thomas van Aquinolaan 4, 6525 AJ Nijmegen, The Netherlands
+---
+
+```{r setup, message =FALSE, Warning=FALSE}
+library(readr)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Paths
+voc_meta     <- "D:/Research_projects/veni_data_local/vocalization/exp100/Meta/"
+voc_procdtot <- "D:/Research_projects/veni_data_local/vocalization/exp100/Processed/complete_datasets/"
+exp_meta     <- "D:/Research_projects/veni_data_local/expire/exp100/Meta/"
+exp_procdtot <- "D:/Research_projects/veni_data_local/expire/exp100/Processed/complete_datasets/"
+
+# ppn 41 and 42 are the SAME participant as ppn 4 (split across IDs).
+recode_ppn <- function(df, cols = c("ppn", "pp")) {
+  for (col in cols) if (col %in% names(df)) {
+    v <- suppressWarnings(as.numeric(df[[col]]))
+    v[v %in% c(41, 42)] <- 4
+    df[[col]] <- v
+  }
+  df
+}
+
+read_triallist <- function(meta_dir) {
+  fs <- list.files(meta_dir, pattern = "triallist*", full.names = TRUE)
+  d  <- bind_rows(lapply(fs, function(p) {
+    # Read everything as character so per-file type inference can't
+    # disagree across files (e.g. `trial` as <chr> in one, <dbl> in another).
+    x <- suppressMessages(read_delim(p, delim = ";", show_col_types = FALSE,
+                                     col_types = cols(.default = "c")))
+    x$ppn <- parse_number(basename(p))
+    x
+  }))
+  d <- recode_ppn(d)
+  d$uniquetrial <- paste0(d$trialindex, "_", d$ppn)
+  d[!duplicated(d$uniquetrial), ]
+}
+
+track <- function(label, df, ppn_col = "ppn") {
+  tibble(step           = label,
+         N_trials       = if ("uniquetrial" %in% names(df)) length(unique(df$uniquetrial)) else nrow(df),
+         N_participants = length(unique(df[[ppn_col]])))
+}
+```
+
+# Vocalization
+
+```{r voc-track}
+voc_tl <- read_triallist(voc_meta)
+
+voc_filter <- voc_tl %>%
+  filter(movement_condition == "no_movement",
+         vocal_condition    == "vocalize",
+         trial_type         == "main")
+
+voc_full <- suppressMessages(read_csv(file.path(voc_procdtot, "fulldata_heartrate.csv"),
+                                      show_col_types = FALSE)) %>%
+  recode_ppn() %>%
+  # `heartrate_EMG_hz` is created in memory in the source `.Rmd` but not
+  # written to the CSV. Recreate it here: rectus for ppn 9, pectoralis otherwise.
+  mutate(heartrate_EMG_hz  = ifelse(ppn == 9, heartrate_rectusfft_hz,  heartrate_pectoralisfft_hz),
+         heartrate_EMG_bpm = ifelse(ppn == 9, heartrate_rectusfft_bpm, heartrate_pectoralisfft_bpm))
+
+voc_hr <- voc_full %>% filter(!is.na(heartrate_EMG_hz))
+
+bind_rows(
+  track("1. Full trial list (all conditions)",                 voc_tl),
+  track("2. After filter: no-mov, vocalize, main",             voc_filter),
+  track("3. Aggregated (`fulldata_heartrate.csv`)",            voc_full),
+  track("4. With valid FFT heart rate",                        voc_hr),
+  tibble(step = "5. Rows in H1 coherence model (= 2 × step 4)",
+         N_trials = 2 * nrow(voc_hr),
+         N_participants = length(unique(voc_hr$ppn)))
+) %>%
+  kable(caption = "Vocalization — trial/participant count at each step") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Trials per participant at the model step
+
+We have a total 5 dropped participants for the vocalization trials as we only have NA's for the heart `heartrate_EMG_hz'.
+
+
+
+```{r voc-trials-per-pp}
+voc_hr %>%
+  count(ppn, name = "n_trials") %>%
+  arrange(ppn) %>%
+  kable(caption = "Vocalization — trials per participant entering the H1 model") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+### Breakdown of the model N by weight condition
+
+Each surviving trial contributes one real and one false pair, so the model row
+count = 2 × trials, split across no-weight and weight cells.
+
+```{r voc-by-weight}
+voc_hr %>%
+  count(weight_condition, name = "n_trials") %>%
+  mutate(n_model_rows = 2 * n_trials) %>%
+  kable(caption = "Vocalization — H1 model N by weight condition") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+
+# Expiration
+
+No participants were dropped, meaning for the expiration trials we were able to extract heart rate in 0.75-3 Hz band.
+
+```{r exp-track}
+exp_tl <- read_triallist(exp_meta)
+
+exp_filter <- exp_tl %>%
+  filter(movement_condition == "no_movement",
+         vocal_condition    == "expire",
+         trial_type         == "main")
+
+exp_full <- suppressMessages(read_csv(file.path(exp_procdtot, "fulldata_heartrate.csv"),
+                                      show_col_types = FALSE)) %>%
+  recode_ppn() %>%
+  mutate(heartrate_EMG_hz  = ifelse(ppn == 9, heartrate_rectusfft_hz,  heartrate_pectoralisfft_hz),
+         heartrate_EMG_bpm = ifelse(ppn == 9, heartrate_rectusfft_bpm, heartrate_pectoralisfft_bpm))
+
+exp_hr <- exp_full %>% filter(!is.na(heartrate_EMG_hz))
+
+bind_rows(
+  track("1. Full trial list (all conditions)",                 exp_tl),
+  track("2. After filter: no-mov, expire, main",               exp_filter),
+  track("3. Aggregated (`fulldata_heartrate.csv`)",            exp_full),
+  track("4. With valid FFT heart rate",                        exp_hr),
+  tibble(step = "5. Rows in H1 coherence model (= 2 × step 4)",
+         N_trials = 2 * nrow(exp_hr),
+         N_participants = length(unique(exp_hr$ppn)))
+) %>%
+  kable(caption = "Expiration — trial/participant count at each step") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+```{r exp-trials-per-pp}
+exp_hr %>%
+  count(ppn, name = "n_trials") %>%
+  arrange(ppn) %>%
+  kable(caption = "Expiration — trials per participant entering the H1 model") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+```{r exp-by-weight}
+exp_hr %>%
+  count(weight_condition, name = "n_trials") %>%
+  mutate(n_model_rows = 2 * n_trials) %>%
+  kable(caption = "Expiration — H1 model N by weight condition") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("hover", "condensed"))
+```
+
+

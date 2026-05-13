@@ -37,6 +37,7 @@ set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 knitr::opts_knit$set(root.dir = normalizePath("."))
 basefolder <- getwd()  # Use current working directory
+
 ```
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE, code_folding = "Show code setting up the packages"}
@@ -72,10 +73,10 @@ r_refs("references.bib")
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code loading and preparing the data", message = FALSE}
 #Local data
 localfolder <- "D:/Research_projects/veni_data_local/vocalization/exp100/"#"This points to your local data that you have downloaded from SURF" 
-
+procd <- paste0(localfolder, '/Processed/triallevel/') #processed data folder
 #lets set all the data folders
 rawd      <- paste0(localfolder, 'Trials/')    #raw trial level data
-procd     <- paste0(localfolder, 'Processed/triallevel/') #processed data folder
+# procd     <- paste0(localfolder, 'Processed/triallevel/') #processed data folder
 procdtot  <- paste0(localfolder, 'Processed/complete_datasets/') #processed data folder
 daset     <- paste0(localfolder, 'Dataset/')   #dataset folder
 meta      <- paste0(localfolder, 'Meta/')   #Meta and trial data
@@ -292,7 +293,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = FALSE
+overwrite = TRUE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -404,7 +405,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = FALSE
+overwrite = TRUE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -528,7 +529,7 @@ if (file.exists(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
-overwrite = FALSE
+overwrite = TRUE
 
 if(overwrite==TRUE)
 {
@@ -769,7 +770,7 @@ Subsequently, we ran FFTs on the two sEMG signals (rectus abdominis and pectoral
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
-overwrite = FALSE #set to true if you want to run this chunk
+overwrite = TRUE #set to true if you want to run this chunk
 
 if(overwrite == TRUE)
 {
@@ -1920,7 +1921,7 @@ By cutting the trials in two early and later portions as to then compare coheren
 ```{r cross-wavelet, echo = TRUE, code_folding = "Show code creating cross-wavelet", message = FALSE}
 library(WaveletComp)
 
-overwrite = FALSE
+overwrite = TRUE
 
 # Function to compute wavelet coherence and extract max coherence in heart rate band
 compute_wavelet_coherence <- function(env_signal, emg_signal, sampling_rate = 2500, 
