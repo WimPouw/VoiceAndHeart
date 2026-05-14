@@ -293,7 +293,7 @@ All signals were sampled at, or upsampled to, 2,500 Hz. Then we aggregated the d
 library(pracma)
 library(zoo)
 
-overwrite = FALSE
+overwrite = TRUE
 
 #lets loop through the triallist and extract the files
 triallist$uniquetrial <- paste0(triallist$trialindex, '_', triallist$ppn) 
@@ -405,7 +405,7 @@ fs <- fs[!fs%in%list.files(procd, pattern = 'zscal_*')]
 fs <- fs[fs%in%list.files(procd, pattern = "heartrate")]
 
 #set to true if you want to overwrite files (to check [modified] code)
-overwrite = FALSE
+overwrite = TRUE
 
 if((length(list.files(procd, pattern = 'zscal_*')) == 0) | (overwrite==TRUE))
 {
@@ -529,7 +529,7 @@ if (file.exists(paste0(procd, 'zscal_pp_', ex3$ppn, '_trial_', ex3$trialindex, '
 ```{r, cache = FALSE, warning = FALSE, message = FALSE, code_folding = "Show code setting up the data frame"} 
 #just inserted the cache.lazy, because I could not knit (long vectors not supported yet)
 
-overwrite = FALSE
+overwrite = TRUE
 
 if(overwrite==TRUE)
 {
@@ -651,7 +651,7 @@ tsl_fulltime <- tsl_fulltime %>%
 tsl_fulltime$pectoralis_major[is.na(tsl_fulltime$pectoralis_major)] <- 0 #there are some trailing NA's which we fill with 0 
 tsl_fulltime$rectus_abdominis[is.na(tsl_fulltime$rectus_abdominis)] <- 0
 
-tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn)
+#tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn) # R1 recoding happens later
 
 ```
 
@@ -772,7 +772,7 @@ Subsequently, we ran FFTs on the two sEMG signals (rectus abdominis and pectoral
 
 ```{r, warning = FALSE, echo = TRUE, code_folding = "Show code using FFTs to calculate heartrate on EMG signals", message = FALSE}
 df_fft <- data.frame()
-overwrite = FALSE #set to true if you want to run this chunk
+overwrite = TRUE #set to true if you want to run this chunk
 
 if(overwrite == TRUE)
 {
@@ -886,6 +886,7 @@ if(!overwrite)
 }
 
 #get heartrate from pectoralis FFTs, unless participant is 9, then use rectus
+tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn %in% c(41, 42), 4, tr_wd_nomov$ppn) # R1 recoding added here
 
 tr_wd_nomov <- tr_wd_nomov %>% 
   mutate(heartrate_EMG_hz = ifelse(ppn == 9, heartrate_rectusfft_hz, heartrate_pectoralisfft_hz))

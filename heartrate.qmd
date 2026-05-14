@@ -81,6 +81,11 @@ procdtot  <- paste0(localfolder, 'Processed/complete_datasets/') #processed data
 daset     <- paste0(localfolder, 'Dataset/')   #dataset folder
 meta      <- paste0(localfolder, 'Meta/')   #Meta and trial data
 
+# make these if not existent
+for (d in c(procd, procdtot, daset)) {
+  if (!dir.exists(d)) dir.create(d, recursive = TRUE)
+}
+
 #load in the trialinfo data (containing info like condition order, trial number etc)
 trialf    <- list.files(meta, pattern = 'triallist*')
 triallist <- data.frame()
@@ -651,7 +656,7 @@ tsl_fulltime <- tsl_fulltime %>%
 tsl_fulltime$pectoralis_major[is.na(tsl_fulltime$pectoralis_major)] <- 0 #there are some trailing NA's which we fill with 0 
 tsl_fulltime$rectus_abdominis[is.na(tsl_fulltime$rectus_abdominis)] <- 0
 
-tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn)
+#tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn%in%c(41, 42), 4, tr_wd_nomov$ppn) # R1 we do the recoding after
 
 ```
 
@@ -884,6 +889,8 @@ if(!overwrite)
 }
 
 #get heartrate from pectoralis FFTs, unless participant is 9, then use rectus
+# Recode ppn 41/42 -> 4 now that FFTs have been written using original filenames
+tr_wd_nomov$ppn <- ifelse(tr_wd_nomov$ppn %in% c(41, 42), 4, tr_wd_nomov$ppn) # R1 recoding added here
 
 tr_wd_nomov <- tr_wd_nomov %>% 
   mutate(heartrate_EMG_hz = ifelse(ppn == 9, heartrate_rectusfft_hz, heartrate_pectoralisfft_hz))
@@ -1918,7 +1925,7 @@ knitr::kable(format(round(modelsummary_halves, digits = 3)),
 
 By cutting the trials in two early and later portions as to then compare coherence values, we may have lost some temporal resolution. We therefore also applied a wavelet coherence analysis to track coherence values over time, and then extract the maximum coherence in the heart rate frequency band (48-150bpm) over time. The conclusion remains the same. We do not observe a clear effect respiration phase (first half vs second half) on heart-voice coupling.
 
-```{r cross-wavelet, echo = TRUE, code_folding = "Show code creating cross-wavelet", message = FALSE}
+```{r cross-wavelet, echo = TRUE, code_folding = "Show code creating cross-wavelet", message = FALSE, warning = FALSE, results = "hide"}
 library(WaveletComp)
 
 overwrite = TRUE
@@ -1931,18 +1938,20 @@ compute_wavelet_coherence <- function(env_signal, emg_signal, sampling_rate = 25
   time_vec <- seq(0, length(env_signal) - 1) / sampling_rate
   
   # Compute wavelet coherence
-  wc <- analyze.coherency(
-    data.frame(time = time_vec, env = env_signal, emg = emg_signal),
-    my.pair = c("env", "emg"),
-    loess.span = 0,
-    dt = 1/sampling_rate,
-    dj = 1/20,  # frequency resolution
-    lowerPeriod = 1/hr_band_hz[2],  # corresponds to upper freq bound
-    upperPeriod = 1/hr_band_hz[1],  # corresponds to lower freq bound
-    make.pval = TRUE,
-    n.sim = 10
-  )
-  
+  invisible(capture.output(
+    wc <- analyze.coherency(
+      data.frame(time = time_vec, env = env_signal, emg = emg_signal),
+      my.pair = c("env", "emg"),
+      loess.span = 0,
+      dt = 1/sampling_rate,
+      dj = 1/20,
+      lowerPeriod = 1/hr_band_hz[2],
+      upperPeriod = 1/hr_band_hz[1],
+      make.pval = TRUE,
+      n.sim = 10
+    )
+  ))
+    
   # Extract coherence matrix (time x frequency)
   coherence_matrix <- wc$Coherence
   time_series <- wc$axis.1
