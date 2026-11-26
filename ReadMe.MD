@@ -13,6 +13,9 @@ View our analysis quarto notebook online: [https://wimpouw.github.io/VoiceAndHea
 ## Current publication related to this dataset
 * Hafkamp, M. S. J., Werner, R., Drijvers, L., Selen, L. P. J., Pouw, W. (2026). Discriminating mechanisms of heart-voice coupling. *The Journal of the Acoustical Society of America*. doi: 10.1121/10.0047650
 
+## Zenodo release citation
+* Hafkamp, M. S. J., & Pouw, W. (2026). WimPouw/VoiceAndHeart: Zenodo Release (Version 1.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24562776
+
 ## Open Data (already published)
 Access the complete large data files at the Radboud Data Repository
 * DOI: https://doi.org/10.34973/p9se-mq71
