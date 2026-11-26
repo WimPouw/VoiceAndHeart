@@ -1,75 +1,28 @@
-# Heart Voice Closed Repo
+# Discriminating mechanisms of heart-voice coupling
+This repository contains the code and data links to reproduce the results of the current publication "Discriminating mechanisms of heart-voice coupling" published in JASA.
 
-This is the private repo of a project about voice and heart by Marijn Hafkamp, Raphael Werner, Linda Drijvers, Luc Selen, Wim Pouw. In the ReadMe I collect all the information that we need ready to hand for this project. The ReadMe is markdown formatted and serves as the landing page of the ReadMe. 
+## Computationally reproducicable notebook
+View our analysis quarto notebook online: [https://wimpouw.github.io/VoiceAndHeart/heartrate_expire](https://wimpouw.github.io/VoiceAndHeart/heartrate_expire)
 
-* Manuscript link: [Google docs](https://docs.google.com/document/d/14QrN7fCNX8wqqjQa6AC-6c1SMdAEHFpo3JgbwhNqPS4/edit?tab=t.0#heading=h.hcfsn8dd2dw4)
-* Publication webpage for this Github: https://wimpouw.github.io/VoiceAndHeart/ -> for quickly sharing results
-* Zotero library link: [voiceheart](https://www.zotero.org/groups/6073975/voiceheart) -> for our references
-* Raw Data: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
+<div align="center">
+  <img src="Images/Fig2R1.png" alt="Figure 2 of the paper." width="50%" />
+  <br>
+  <em>Figure 2 of the paper.</em>
+</div>
 
-# How to run the code
+## Current publication related to this dataset
+* Hafkamp, M. S. J., Werner, R., Drijvers, L., Selen, L. P. J., Pouw, W. (2026). Discriminating mechanisms of heart-voice coupling. **The Journal of the Acoustical Society of America**. doi: 10.1121/10.0047650
 
-Please not that a lot of code blocks take a lot of time to run. And once we have run them, we can set overwrite to FALSE, and occasionally some code blocks to cache=TRUE. This way you can more quickly change things and render the outcome. Of course, during coding you can just run things in the terminal (by clicking on the play on each chunck) and then you dont have to knit the entire document. 
+## Open Data (already published)
+Access the complete large data files at the Radboud Data Repository
+* DOI: https://doi.org/10.34973/p9se-mq71
+* Location: https://data.ru.nl/collections/di/dcc/DSC_2023.00002_259
 
+## Other associated publications of this dataset
+* Pouw, W., Werner, R., Burchardt, L. S., & Selen, L. P. (2025). The human voice aligns with whole-body kinetics. Proceedings B, 292(2047), 20250160. [https://doi.org/10.1098/rspb.2025.0160](https://doi.org/10.1098/rspb.2025.0160).
+* Pouw, W., Burchardt, L. S., Werner, R. J., & Selen, L. P. J. (2024). Movement-related muscle activity and kinetics affect human vocalization amplitude. In *Proceedings of the International Conference on the Evolution of Language (EVOLANG2024)*, Madison, USA.
+* Werner, R., Selen, L., & Pouw, W. (2024). Arm movements increase acoustic markers of expiratory flow. In *Proceedings of Speech Prosody 2024*, Leiden, The Netherlands.
+* Hafkamp, M. S., Werner, R., Drijvers, L., Selen, L., & Pouw, W. (2025). Dissociating Mechanisms of Heart-Voice Coupling. bioRxiv, 2025-12.
 
-
-## Step 0.0:
-
-* Download github desktop
-* Check a quick tutorial on how to clone a repo using github desktop (YouTube)
-* clone repo
-
-
-
-## Step 0.1:
-
-* do a quick tutorial on Rmarkdown on YouTube
-* do a quick tutorial on the markdown formatting of text on YouTube
-
-
-
-
-## Step 1: Get the data to you local machine
-
-Download link: https://surfdrive.surf.nl/files/index.php/s/awE88r5zum3Jqm6
-
-password: Donders
-
-
-
-## Step 2: adjust the markdown to point to to the local folder
-
-
-
-## Step 3 Run markdown script
-
-* run/knit the markdown
-
-
-
-## Step 4 (optional): Stage result to a public webpage?
-
-copy index.html to /docs
-
-
-
-Then check: 
-
-
-
-references.bib -> is a zotero export that handles your references
-
-
-
-after\_edited\_plots -> has some figures that we would like to use that are not generated from within the markdown itself (images, or maybe after edited plots to increase aesthethics).
-
-
-
-/docs -> is a folder that has an index.html and associated files in there, which is hosted as a website that is publicly available (unlike the repo, which is currently set to private).
-
-
-# Todo's stap voor step
-
-
-
-
+## Contact
+For questions or collaborations, please contact: w.pouw@tilbuguniversity.edu or go to www.wimpouw.com
