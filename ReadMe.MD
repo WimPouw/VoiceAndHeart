@@ -5,7 +5,7 @@ This repository contains the code and data links to reproduce the results of the
 View our analysis quarto notebook online: [https://wimpouw.github.io/VoiceAndHeart/heartrate_expire](https://wimpouw.github.io/VoiceAndHeart/heartrate_expire)
 
 <div align="center">
-  <img src="Images/Fig2R1.png" alt="Figure 2 of the paper." width="50%" />
+  <img src="images/Fig2R1.png" alt="Figure 2 of the paper." width="50%" />
   <br>
   <em>Figure 2 of the paper.</em>
 </div>
