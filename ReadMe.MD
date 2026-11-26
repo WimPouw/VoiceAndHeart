@@ -24,4 +24,4 @@ Access the complete large data files at the Radboud Data Repository
 * Werner, R., Selen, L., & Pouw, W. (2024). Arm movements increase acoustic markers of expiratory flow. In *Proceedings of Speech Prosody 2024*, Leiden, The Netherlands.
 
 ## Contact
-For questions or collaborations, please contact: w.pouw@tilbuguniversity.edu or go to www.wimpouw.com
+For questions or collaborations, please contact: m.hafkamp@tilburguniversity.edu, w.pouw@tilbuguniversity.edu or go to www.wimpouw.com
